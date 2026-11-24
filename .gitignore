@@ -3,6 +3,8 @@
 *.xcuserstate
 DerivedData/
 build/
+.build/
+dist/
 *.xcarchive
 *.xcresult
 .env

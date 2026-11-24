@@ -33,6 +33,12 @@ The project was built with the macOS 27.2 SDK and has a macOS 27.2 deployment ta
 
 Screenshot collection uses directory-change notifications and macOS screenshot metadata. It does not import old screenshots, capture the screen, or accept clipboard-only image data/file promises. Metadata delays or missing metadata can prevent automatic collection; manual file drops remain available. Collection is bounded to a single nonrecursive folder with at most 4,096 entries and bounded candidate retries. Choose the folder again after restarting the app.
 
+## Create a local DMG
+
+Run `bash scripts/create-dmg.sh`. This builds Release, creates a compressed disk image in `dist/`, verifies it, mounts it read-only to check the app signature and Applications shortcut, and writes a SHA-256 checksum. Build output stays outside version control. The unused starter `ContentView.swift` is excluded from compilation; the application uses AppKit.
+
+The DMG contains `DropShelf.app` (the internal executable remains `SelfDrop`) and installation notes. This is an ad hoc signed development package, without Developer ID signing or notarization. Gatekeeper acceptance on other Macs is not guaranteed. Packaging does not establish release acceptance or the 100 MB budget.
+
 ## Tests and verification
 
 Select the **SelfDropTests** scheme and use **Command-U**. The hostless Swift Testing target compiles the production store source through a relative symlink; keep that symlink intact when checking out the repository.
