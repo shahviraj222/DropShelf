@@ -6,3 +6,7 @@
 - The reusable script uses macOS 27 diskutil image create from, whose command syntax was checked locally. A successful run would verify/mount/check/detach the image and produce a SHA-256 checksum. That path remains blocked here; run bash scripts/create-dmg.sh in a normal Terminal with working disk-image services.
 - Fallback artifact: dist/DropShelf-1.0-arm64.zip, containing the verified Release app. SHA-256: 657f1f22466c62b2adebd61a1016bd759e4047bcb3e3de07c711cd220d435812. The app is not Developer ID signed or notarized. Launch on another Mac and full product acceptance are unverified.
 - Build output and artifacts are ignored by Git. No binary was uploaded to GitHub.
+
+## ZIP repository publication follow-up
+
+The owner subsequently requested ZIP distribution instead of DMG. The same verified archive is now tracked at downloads/DropShelf-1.0-arm64.zip with a sibling SHA-256 file, linked directly from the root README. Its checksum is unchanged. ZIP integrity, extracted app deep/strict signature, checksum verification and local README links were checked before publication. Generated dist/ and .build/ remain ignored. Root AGENTS.md now provides the architecture/constraints/validation handoff. This publication does not establish notarization, other-Mac launch or outstanding product acceptance gates.

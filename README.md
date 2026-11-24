@@ -1,77 +1,70 @@
 # DropShelf
 
-A native macOS shelf for temporarily staging files, folders, and recent screenshots, then dragging them into another app.
+A native macOS shelf that keeps files within reach while you switch between apps. Drop files or folders onto the blue tab at the right edge, then drag them from the shelf into a supported destination.
 
-Built with Swift and AppKit. Existing files remain in their original locations; the shelf keeps references in memory for the current session.
+DropShelf keeps **temporary references**, not copies of your files. Originals stay where they are, and the shelf starts empty after quitting.
 
-![DropShelf interaction wireframe](SelfDrop/DropShelf-Codex-Brief/design/shelf-wireframe.svg)
+## Download and install
 
-*Original design reference supplied with the project brief. This is a concept illustration, not a screenshot of the current build.*
+**[Download DropShelf 1.0 for Apple Silicon — ZIP](https://github.com/shahviraj222/DropShelf/raw/refs/heads/main/downloads/DropShelf-1.0-arm64.zip)** · [SHA-256 checksum](downloads/DropShelf-1.0-arm64.zip.sha256)
 
-## Features
+Requires **macOS 27.2 or later on Apple Silicon**. This build does not support Intel Macs or older macOS versions.
 
-- Blue floating tab at the right edge of the screen, accepting file drops while collapsed.
-- Compact shelf with separate manual-file and recent-screenshot sections and image preview tiles.
-- Native typed file-URL dragging, including multiple selected items, with copy-only operations.
-- Cmd-click or long press for multi-selection, Cmd-A, Delete, Remove selected, and Clear all.
-- Optional automatic screenshot collection from an explicitly selected save folder: newest 10 references, each expiring after one hour.
-- Session-only state, no database, networking, telemetry, clipboard polling, or third-party runtime dependencies.
+1. Download and double-click the ZIP to extract **DropShelf.app**.
+2. Drag the app into **Applications**, then open it.
+3. Look for the blue tab on the right edge of the screen.
 
-Removing or expiring a reference never deletes the original file. Clear all leaves screenshot monitoring enabled; use Stop to disable collection. Quitting starts the next session with an empty shelf.
+This is an early development build with ad hoc signing, **without Developer ID signing or notarization**. macOS may block it on another Mac. Building from source with your own signing configuration is an alternative. There is no DMG download.
 
-## Build and run
+## How to use it
 
-The current project is named **SelfDrop**; the product is being developed as **DropShelf**.
+![DropShelf: drop onto the blue tab, open the shelf, select items and drag them out](SelfDrop/DropShelf-Codex-Brief/design/shelf-wireframe.svg)
 
-1. Open `SelfDrop.xcodeproj` in Xcode.
-2. Select the **SelfDrop** scheme and **My Mac** destination.
-3. Build and run with **Command-R**. The current configuration uses local ad hoc signing, App Sandbox, and user-selected read-only file access.
-4. Drop files onto the blue tab, then click it to open the shelf. Select tiles and drag them into a supported destination.
-5. For automatic screenshots, click **Choose screenshot folder…** and choose the actual macOS screenshot save location. Save a new screenshot after enabling collection.
+*The supplied SVG illustrates the intended interactions and feedback states. It is a concept reference, not a screenshot of the current build.*
 
-The project was built with the macOS 27.2 SDK and has a macOS 27.2 deployment target. It was checked on an Apple Silicon Mac running macOS 27.2.1. Compatibility with earlier systems is not established.
+1. **Stage files:** drag files or folders from Finder directly onto the collapsed blue tab, as shown on the left of the image.
+2. **Open the shelf:** click the tab. The panel opens inward from the right edge, as shown on the right.
+3. **Select and drag:** click a tile and drag it to a supported destination. Cmd-click selects multiple tiles; long press enables multi-selection. Use the actual attachment area or folder, such as a ChatGPT composer or VS Code Explorer folder. Acceptance depends on the receiving app and drop zone.
+4. **Collect screenshots:** click **Choose screenshot folder…** and select the macOS screenshot save folder. Save a new screenshot after enabling collection. The newest 10 references appear separately and each expires after one hour. **Stop** disables collection. Choose the folder again after restarting the app.
+5. **Remove items:** use **Remove selected**, Delete, or **Clear all**. These remove references only, never original files. Clear all leaves monitoring enabled for future screenshots.
+6. **Close the panel:** click **×** to return to the tab. Outgoing drags retain staged items.
 
-Screenshot collection uses directory-change notifications and macOS screenshot metadata. It does not import old screenshots, capture the screen, or accept clipboard-only image data/file promises. Metadata delays or missing metadata can prevent automatic collection; manual file drops remain available. Collection is bounded to a single nonrecursive folder with at most 4,096 entries and bounded candidate retries. Choose the folder again after restarting the app.
+Collection watches only the selected folder. It does not capture the screen, import old screenshots, intercept the clipboard, or materialize floating screenshot promises. Missing/delayed screenshot metadata can prevent automatic collection; manually dropping the saved file remains available.
 
-## Create a local DMG
+## What it uses
 
-Run `bash scripts/create-dmg.sh`. This builds Release, creates a compressed disk image in `dist/`, verifies it, mounts it read-only to check the app signature and Applications shortcut, and writes a SHA-256 checksum. Build output stays outside version control. The unused starter `ContentView.swift` is excluded from compilation; the application uses AppKit.
-
-The DMG contains `DropShelf.app` (the internal executable remains `SelfDrop`) and installation notes. This is an ad hoc signed development package, without Developer ID signing or notarization. Gatekeeper acceptance on other Macs is not guaranteed. Packaging does not establish release acceptance or the 100 MB budget.
-
-## Tests and verification
-
-Select the **SelfDropTests** scheme and use **Command-U**. The hostless Swift Testing target compiles the production store source through a relative symlink; keep that symlink intact when checking out the repository.
-
-Latest recorded checks:
-
-- App build passed.
-- Seven Swift Testing tests passed, covering reference deduplication/capacity, stale-result protection, drag snapshots, missing files, screenshot FIFO, expiry boundaries, promotion, and clearing.
-- A synthetic directory-event check collected a newly metadata-marked fixture and excluded an old fixture and an unrelated PNG.
-- The owner reported working transfers to VS Code, email, and ChatGPT in the earlier native-drag build. The redesigned UI and screenshot capture path still need physical-Mac integration checks.
-
-This is a work in progress. Full-screen Spaces, multiple displays, accessibility, permission changes, actual screenshot capture, and the redesigned native drag UI still require manual verification. The 100 MB Release memory budget and idle CPU targets have **not** been validated. Do not treat passing unit tests as release acceptance.
-
-See the [verification reports](verification/) for actual results and pending gates.
-
-## Architecture
-
-| Component | Responsibility |
+| Technology | Purpose |
 |---|---|
-| `SelfDropApp` | AppKit entry point and application lifecycle |
-| `ShelfWindowController` | Floating nonactivating panel and right-edge placement |
-| `FileDragView` | Native controls, tile selection, typed drag sessions, bounded previews |
-| `ShelfStore` / `ReferenceResolver` | Main-actor session state, background reference checks, deduplication and expiry |
-| `ScreenshotMonitor` | Event-driven observation and metadata classification in the selected folder |
-| `SelfDropTests` | Foundation-only store and reference tests |
+| Swift + AppKit | Native controls, app lifecycle, floating nonactivating NSPanel, pointer gestures |
+| NSDraggingSession / NSDraggingItem / NSPasteboard | Typed file URLs, one payload per selected file, copy-only operations |
+| Foundation | In-memory state/bookmarks, identity deduplication, background reference validation |
+| Dispatch directory notifications + macOS metadata | Event-driven screenshot discovery without continuous polling |
+| ImageIO | Downsampled previews, serial decoding and bounded cache |
+| Swift Testing | Reference, store, screenshot queue and expiry checks |
 
-## Requirements and design
+No third-party runtime dependencies, server, networking, telemetry, database or persistent shelf history. Manual staging is capped at 500 references; screenshot-folder scans are nonrecursive and bounded to 4,096 entries.
 
-The full original specification is preserved in [DropShelf-Codex-Brief](SelfDrop/DropShelf-Codex-Brief/):
+## Build from source
 
-- [Engineering constraints](SelfDrop/DropShelf-Codex-Brief/AGENTS.md)
-- [Requirements and architecture](SelfDrop/DropShelf-Codex-Brief/docs/)
-- [Implementation plan](SelfDrop/DropShelf-Codex-Brief/docs/07-implementation-plan.md)
-- [Original SVG wireframe](SelfDrop/DropShelf-Codex-Brief/design/shelf-wireframe.svg)
+1. Open `SelfDrop.xcodeproj` in Xcode. Project/schemes and the internal executable retain the original **SelfDrop** name.
+2. Select **SelfDrop → My Mac** and press **Command-R**.
+3. The project uses ad hoc signing, App Sandbox and user-selected read-only access. Configure your own signing for distribution.
 
-Changes should preserve native file semantics, session-only references, original-file safety, bounded background work, and honest verification results.
+Built with **Xcode 27.2 / macOS 27.2 SDK**, targeting **macOS 27.2**. The unused starter `ContentView.swift` is excluded from compilation; the app uses AppKit.
+
+## Tests and current status
+
+Select **SelfDropTests** and press **Command-U**. The hostless target compiles the production store through a relative symlink; preserve it when checking out the repository.
+
+- Latest recorded app/Release builds passed and the packaged app passed deep/strict code-signature verification.
+- **Seven Swift Testing tests passed:** capacity/deduplication, stale results, drag snapshots, missing files, screenshot FIFO, expiry boundaries, promotion and clearing.
+- A directory-event fixture check collected a new metadata-marked image and excluded an old file and unrelated PNG.
+- The owner reported working VS Code, email and ChatGPT transfers in the earlier drag build. The redesigned UI and actual screenshot-capture path still need manual verification.
+
+Full-screen Spaces, multiple displays, accessibility, permissions, other-Mac installation and the updated drag UI need further checking. The **100 MB Release memory budget and idle CPU targets are unvalidated**. See [verification reports](verification/) for actual outcomes and pending gates.
+
+## Code and agent guide
+
+Start with [AGENTS.md](AGENTS.md) for the implementation map, engineering constraints, validation notes and handoff. The complete [original brief](SelfDrop/DropShelf-Codex-Brief/), [architecture](SelfDrop/DropShelf-Codex-Brief/docs/02-architecture.md), [implementation plan](SelfDrop/DropShelf-Codex-Brief/docs/07-implementation-plan.md) and [original SVG](SelfDrop/DropShelf-Codex-Brief/design/shelf-wireframe.svg) remain included.
+
+The downloadable ZIP is tracked in [downloads/](downloads/). DMG creation was blocked by development-environment disk-image services; [failure notes](verification/dmg-packaging.md) and an experimental [script](scripts/create-dmg.sh) are retained. No working DMG is claimed.
