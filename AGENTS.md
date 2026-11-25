@@ -44,10 +44,14 @@ Recorded: seven tests passed; synthetic directory-event fixtures passed; Release
 
 ## Download and packaging
 
-downloads/DropShelf-1.0-arm64.zip is the actual Release download: arm64, macOS 27.2 minimum, ad hoc signed, not notarized. No verified DMG exists. See verification/dmg-packaging.md. The SVG is a design concept, not a current app screenshot.
+downloads/DropShelf-1.0.1-arm64.zip is the actual Release download: arm64, macOS 27.2 minimum, ad hoc signed, not notarized. No verified DMG exists. See verification/dmg-packaging.md. The SVG is a design concept, not a current app screenshot.
 
 For replacement packages: rebuild Release from intended source, verify signature/ZIP integrity, update checksum and README version/requirements, and record source/build provenance. Never leave a stale checksum. Keep generated .build/, dist/, Xcode user state and credentials out of Git. Do not add licensing terms without owner direction.
 
 ## Commit discipline
 
 The owner requires detailed commits from now on. Keep each change focused and explain every change, why it was made, validation actually run and known limitations in the commit body. Do not claim unrun tests.
+
+## Icon and app details update
+
+The owner-supplied icon is preserved at design/appicon.svg. scripts/render-app-icon.swift exports its exact simple vector geometry into all ten native macOS AppIcon slots with transparency; update the exporter if the artwork changes. SelfDropApp now supplies About, Show Shelf (Shift-Command-S), usage help and Dock reopen handling. Shelf header uses the bundled app icon. Current version 1.0.1/build 2; project/scheme/executable names are unchanged.
