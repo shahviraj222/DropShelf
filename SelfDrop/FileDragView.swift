@@ -97,7 +97,7 @@ final class FileDragView: NSView, NSDraggingSource {
     private let folderButton = NSButton(title: "Choose screenshot folder…", target: nil, action: nil)
     private let removeButton = NSButton(title: "Remove selected", target: nil, action: nil)
     private let clearButton = NSButton(title: "Clear all", target: nil, action: nil)
-    private let closeButton = NSButton(title: "×", target: nil, action: nil)
+    private let headerButton = NSButton(title: "", target: nil, action: nil)
     private let stopButton = NSButton(title: "Stop", target: nil, action: nil)
     private let retryButton = NSButton(title: "Retry", target: nil, action: nil)
     private var wakeObserver: NSObjectProtocol?
@@ -111,14 +111,18 @@ final class FileDragView: NSView, NSDraggingSource {
         setAccessibilityLabel("DropShelf")
         for (button, action) in [(folderButton, #selector(chooseFolder)),
             (removeButton, #selector(removeSelected)), (clearButton, #selector(clearAll)),
-            (closeButton, #selector(closeShelf)), (stopButton, #selector(stopMonitoring)),
+            (headerButton, #selector(closeShelf)),
+            (stopButton, #selector(stopMonitoring)),
             (retryButton, #selector(retry))] {
             button.target = self
             button.action = action
             button.bezelStyle = .rounded
             button.font = .systemFont(ofSize: 11)
         }
-        closeButton.setAccessibilityLabel("Close shelf")
+        headerButton.isTransparent = true
+        headerButton.identifier = NSUserInterfaceItemIdentifier("collapseShelfHeader")
+        headerButton.setAccessibilityLabel("Collapse DropShelf")
+        headerButton.toolTip = "Collapse shelf"
         clearButton.toolTip = "Remove all shelf references. Original files stay untouched."
         removeButton.toolTip = "Remove selected references, not the original files."
         store.changed = { [weak self] in
@@ -159,11 +163,11 @@ final class FileDragView: NSView, NSDraggingSource {
         subviews.forEach { $0.removeFromSuperview() }
         offset = min(offset, max(0, store.manualItems.count - 4))
         if expanded {
-            for button in [folderButton, removeButton, clearButton, closeButton, stopButton, retryButton] {
+            for button in [folderButton, removeButton, clearButton, headerButton, stopButton, retryButton] {
                 addSubview(button)
             }
-            closeButton.frame = NSRect(x: 278, y: 10, width: 26, height: 24)
-            clearButton.frame = NSRect(x: 205, y: 10, width: 68, height: 24)
+            headerButton.frame = NSRect(x: 8, y: 6, width: 224, height: 34)
+            clearButton.frame = NSRect(x: 236, y: 10, width: 68, height: 24)
             removeButton.frame = NSRect(x: 14, y: 218, width: 128, height: 24)
             removeButton.isEnabled = !store.selection.isEmpty
             retryButton.frame = NSRect(x: 146, y: 218, width: 55, height: 24)
