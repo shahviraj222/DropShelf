@@ -38,7 +38,7 @@ ContentView.swift is an unused starter excluded from compilation. The brief was 
 
 Use Xcode BuildProject for IDE builds. Run tests with SelfDropTests; the app scheme currently has zero tests. Restore SelfDrop afterward. Tests are hostless after the original app-hosted setup failed. Keep ENABLE_DEBUG_DYLIB enabled for snippets.
 
-Clear cached URL resource values before revalidating availability: a real-file deletion test caught stale metadata. Snapshots require validation within five seconds; stale/checking/unavailable selections request a refresh and another drag gesture, never silently omit a subset. Ordinary bookmarks offer best-effort rename/move resolution. Noninterruptible metadata calls can delay the single worker but must not block UI.
+Clear cached URL resource values before revalidating availability: a real-file deletion test caught stale metadata. Snapshots require validation within five seconds. A stale/checking selection now retains the held press while refreshing and resumes its native drag only while the left button is still down. Release cancels the pending gesture. Keep source tiles alive during this interval; unavailable or changed selections must never silently become a partial drag. Ordinary bookmarks offer best-effort rename/move resolution. Noninterruptible metadata calls can delay the single worker but must not block UI.
 
 Recorded: seven tests passed; synthetic directory-event fixtures passed; Release build and ad hoc signature verification passed. Pending: real screenshot collection on owner setup, redesigned UI/drag regression checks, full-screen/Stage Manager/multiple displays, permission denial, accessibility, memory/CPU/soak, other-Mac installation. Never relabel pending work as passed.
 

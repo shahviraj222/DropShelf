@@ -26,11 +26,11 @@ This is an early development build with ad hoc signing, **without Developer ID s
 
 1. **Stage files:** drag files or folders from Finder directly onto the collapsed blue tab, as shown on the left of the image.
 2. **Open the shelf:** click the tab. The panel opens inward from the right edge, as shown on the right.
-3. **Select and drag:** click a tile and drag it to a supported destination. Cmd-click selects multiple tiles; long press enables multi-selection. Use the actual attachment area or folder, such as a ChatGPT composer or VS Code Explorer folder. Acceptance depends on the receiving app and drop zone.
+3. **Select and drag:** press a tile and move while holding the mouse button to drag in one gesture; no release and second click is required. A click without movement selects the tile. Cmd-click selects multiple tiles; long press enables multi-selection. Use the actual attachment area or folder, such as a ChatGPT composer or VS Code Explorer folder. Acceptance depends on the receiving app and drop zone.
 4. **Collect screenshots:** click **Choose screenshot folder…** and select the macOS screenshot save folder. Save a new screenshot after enabling collection. The newest 10 references appear separately and each expires after one hour. **Stop** disables collection. Choose the folder again after restarting the app.
 5. **Remove items:** use **Remove selected**, Delete, or **Clear all**. These remove references only, never original files. Clear all leaves monitoring enabled for future screenshots.
 6. **App menu:** use **About DropShelf** for version details, **How to Use DropShelf** for the built-in guide, or **Show Shelf** (**Shift-Command-S**) to open the panel. Clicking the Dock icon also opens the shelf.
-7. **Close the panel:** click **×** to return to the tab. Outgoing drags retain staged items.
+7. **Close the panel:** click the app icon/title header to return to the tab. Outgoing drags retain staged items.
 
 Collection watches only the selected folder. It does not capture the screen, import old screenshots, intercept the clipboard, or materialize floating screenshot promises. Missing/delayed screenshot metadata can prevent automatic collection; manually dropping the saved file remains available.
 

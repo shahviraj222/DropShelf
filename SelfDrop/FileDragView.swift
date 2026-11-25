@@ -52,6 +52,7 @@ private final class ShelfTile: NSView {
                 .paragraphStyle: paragraph])
     }
 
+    override func acceptsFirstMouse(for event: NSEvent?) -> Bool { true }
     override func mouseDown(with event: NSEvent) { shelf?.select(item, event: event) }
     override func mouseDragged(with event: NSEvent) { shelf?.startDrag(event) }
     override func mouseUp(with event: NSEvent) { shelf?.endPress() }
@@ -78,6 +79,8 @@ final class FileDragView: NSView, NSDraggingSource {
     var preferredHeight: CGFloat { max(400, 375 + CGFloat((store.screenshots.count + 2) / 3) * 67) }
     private var dragSnapshot: [ShelfItem] = []
     private var downPoint: NSPoint?
+    private var pendingDragEvent: NSEvent?
+    private var pressedSelection: Set<UUID> = []
     private var longPressTask: Task<Void, Never>?
     private var feedbackTask: Task<Void, Never>?
     private var previewTask: Task<Void, Never>?
@@ -141,7 +144,14 @@ final class FileDragView: NSView, NSDraggingSource {
                     self?.needsDisplay = true
                 }
             }
-            self.reload()
+            if self.downPoint != nil || !self.dragSnapshot.isEmpty {
+                // Keep the clicked tile alive through validation and native drag tracking.
+                self.subviews.forEach { $0.needsDisplay = true }
+                self.needsDisplay = true
+                self.resumePendingDrag()
+            } else {
+                self.reload()
+            }
         }
         wakeObserver = NSWorkspace.shared.notificationCenter.addObserver(
             forName: NSWorkspace.didWakeNotification, object: nil, queue: .main
@@ -159,6 +169,10 @@ final class FileDragView: NSView, NSDraggingSource {
     }
 
     func reload() {
+        guard downPoint == nil, dragSnapshot.isEmpty else {
+            needsDisplay = true
+            return
+        }
         previewTask?.cancel()
         subviews.forEach { $0.removeFromSuperview() }
         offset = min(offset, max(0, store.manualItems.count - 4))
@@ -310,10 +324,12 @@ final class FileDragView: NSView, NSDraggingSource {
     @objc private func retry() { store.refresh(store.selection) }
 
     func select(_ item: ShelfItem, event: NSEvent) {
+        pendingDragEvent = nil
         window?.makeFirstResponder(self)
         if event.modifierFlags.contains(.command) || multiSelect {
             if !store.selection.insert(item.id).inserted { store.selection.remove(item.id) }
         } else if !store.selection.contains(item.id) { store.selection = [item.id] }
+        pressedSelection = store.selection
         downPoint = convert(event.locationInWindow, from: nil)
         longPressTask?.cancel()
         longPressTask = Task { @MainActor [weak self] in
@@ -326,7 +342,13 @@ final class FileDragView: NSView, NSDraggingSource {
         needsDisplay = true
     }
 
-    func endPress() { downPoint = nil; longPressTask?.cancel() }
+    func endPress() {
+        downPoint = nil
+        pendingDragEvent = nil
+        pressedSelection.removeAll()
+        longPressTask?.cancel()
+        reload()
+    }
     override func mouseDown(with event: NSEvent) { if !expanded { toggle?() } }
     override func scrollWheel(with event: NSEvent) {
         offset = max(0, min(max(0, store.manualItems.count - 4),
@@ -364,12 +386,32 @@ final class FileDragView: NSView, NSDraggingSource {
         guard let downPoint, dragSnapshot.isEmpty else { return }
         let point = convert(event.locationInWindow, from: nil)
         guard hypot(point.x - downPoint.x, point.y - downPoint.y) >= 4 else { return }
-        endPress()
-        guard let snapshot = store.snapshot() else {
-            message = "Selection is checking or unavailable. Retry when ready."
+        longPressTask?.cancel()
+        let alreadyWaiting = pendingDragEvent != nil
+        pendingDragEvent = event
+        if let snapshot = store.snapshot(), store.selection == pressedSelection {
+            beginPreparedDrag(snapshot, event: event)
+        } else if !alreadyWaiting {
+            message = "Checking selected files… keep holding to drag."
             store.refresh(store.selection)
+        }
+    }
+
+    private func resumePendingDrag() {
+        guard let event = pendingDragEvent, downPoint != nil, dragSnapshot.isEmpty else { return }
+        guard NSEvent.pressedMouseButtons & 1 != 0 else {
+            endPress()
             return
         }
+        guard let snapshot = store.snapshot(), store.selection == pressedSelection else { return }
+        beginPreparedDrag(snapshot, event: event)
+    }
+
+    private func beginPreparedDrag(_ snapshot: [ShelfItem], event: NSEvent) {
+        let point = convert(event.locationInWindow, from: nil)
+        pendingDragEvent = nil
+        downPoint = nil
+        longPressTask?.cancel()
         dragSnapshot = snapshot
         let items = snapshot.map { reference in
             let item = NSDraggingItem(pasteboardWriter: reference.url as NSURL)
@@ -385,6 +427,7 @@ final class FileDragView: NSView, NSDraggingSource {
     func draggingSession(_ session: NSDraggingSession, endedAt screenPoint: NSPoint,
                          operation: NSDragOperation) {
         dragSnapshot.removeAll()
+        endPress()
         message = operation.isEmpty ? "Drag cancelled · items retained" : "OS drag ended · items retained"
     }
 
