@@ -8,7 +8,7 @@ DropShelf keeps **temporary references**, not copies of your files. Originals st
 
 ## Download and install
 
-**[Download DropShelf 1.0.1 for Apple Silicon — ZIP](https://github.com/shahviraj222/DropShelf/raw/refs/heads/main/downloads/DropShelf-1.0.1-arm64.zip)** · [SHA-256 checksum](downloads/DropShelf-1.0.1-arm64.zip.sha256)
+**[Download DropShelf 1.0.2 for Apple Silicon — ZIP](https://github.com/shahviraj222/DropShelf/raw/refs/heads/main/downloads/DropShelf-1.0.2-arm64.zip)** · [SHA-256 checksum](downloads/DropShelf-1.0.2-arm64.zip.sha256)
 
 Requires **macOS 27.2 or later on Apple Silicon**. This build does not support Intel Macs or older macOS versions.
 
