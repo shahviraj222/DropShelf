@@ -13,6 +13,11 @@ final class SelfDropApp: NSObject, NSApplicationDelegate {
     }
 
     func applicationDidFinishLaunching(_ notification: Notification) {
+        // Use the compiled catalog icon for the running app as well as bundle discovery.
+        if let iconURL = Bundle.main.url(forResource: "AppIcon", withExtension: "icns"),
+           let icon = NSImage(contentsOf: iconURL) {
+            NSApplication.shared.applicationIconImage = icon
+        }
         let menu = NSMenu()
         let appItem = NSMenuItem()
         let appMenu = NSMenu()
