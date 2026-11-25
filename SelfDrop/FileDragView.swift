@@ -91,6 +91,10 @@ final class FileDragView: NSView, NSDraggingSource {
     private var monitor: ScreenshotMonitor?
     private var monitorToken = UUID()
     private var monitoring = false
+    private var screenshotFolder: URL?
+    static var defaultScreenshotFolder: URL? {
+        FileManager.default.urls(for: .desktopDirectory, in: .userDomainMask).first
+    }
     private var screenshotStatus = "Choose your screenshot save folder to start"
     private var message = "Drop files here"
     private let decoder = PreviewDecoder()
@@ -159,7 +163,11 @@ final class FileDragView: NSView, NSDraggingSource {
             self?.store.prune()
             self?.monitor?.reconcile()
         }}
-        reload()
+        if let desktop = Self.defaultScreenshotFolder {
+            startMonitoring(desktop)
+        } else {
+            reload()
+        }
     }
     required init?(coder: NSCoder) { nil }
 
@@ -274,6 +282,7 @@ final class FileDragView: NSView, NSDraggingSource {
 
     @objc private func chooseFolder() {
         let picker = NSOpenPanel()
+        picker.directoryURL = screenshotFolder ?? Self.defaultScreenshotFolder
         picker.canChooseFiles = false
         picker.canChooseDirectories = true
         picker.allowsMultipleSelection = false
@@ -282,31 +291,42 @@ final class FileDragView: NSView, NSDraggingSource {
         picker.begin { [weak self] response in
             Task { @MainActor [weak self] in
                 guard response == .OK, let url = picker.url, let self else { return }
-                self.monitor?.stop()
-                let token = UUID()
-                self.monitorToken = token
-                self.monitoring = true
-                self.folderButton.title = "Folder: " + url.lastPathComponent
-                self.monitor = ScreenshotMonitor(folder: url) { [weak self] candidates, status in
-                    Task { @MainActor [weak self] in
-                        guard let self, self.monitorToken == token else { return }
-                        for candidate in candidates {
-                            self.store.addScreenshot(candidate.url, capturedAt: candidate.capturedAt)
+                self.startMonitoring(url)
+            }
+        }
+    }
+
+    private func startMonitoring(_ url: URL) {
+        screenshotFolder = url
+        screenshotStatus = "Starting screenshot collection in " + url.lastPathComponent
+        self.monitor?.stop()
+        let token = UUID()
+        self.monitorToken = token
+        self.monitoring = true
+        self.folderButton.title = "Folder: " + url.lastPathComponent
+        self.monitor = ScreenshotMonitor(folder: url) { [weak self] candidates, status in
+            Task { @MainActor [weak self] in
+                guard let self, self.monitorToken == token else { return }
+                for candidate in candidates {
+                    self.store.addScreenshot(candidate.url, capturedAt: candidate.capturedAt)
+                }
+                if let status {
+                    self.screenshotStatus = status
+                    if status.hasPrefix("Cannot") || status.contains("unavailable") || status.contains("exceeds") {
+                        self.monitoring = false
+                        if status.hasPrefix("Cannot"),
+                           url.standardizedFileURL == Self.defaultScreenshotFolder?.standardizedFileURL {
+                            self.folderButton.title = "Allow Desktop access…"
+                            self.screenshotStatus = "Select Desktop to grant access, or choose another folder"
                         }
-                        if let status {
-                            self.screenshotStatus = status
-                            if status.hasPrefix("Cannot") || status.contains("unavailable") || status.contains("exceeds") {
-                                self.monitoring = false
-                                self.monitor?.stop()
-                                self.monitor = nil
-                            }
-                        }
-                        self.reload()
+                        self.monitor?.stop()
+                        self.monitor = nil
                     }
                 }
                 self.reload()
             }
         }
+        reload()
     }
 
     @objc private func stopMonitoring() {

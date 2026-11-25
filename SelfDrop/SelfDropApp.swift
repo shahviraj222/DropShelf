@@ -56,7 +56,7 @@ final class SelfDropApp: NSObject, NSApplicationDelegate {
         alert.informativeText =
             "Drop files onto the blue edge tab, then click it to open the shelf.\n\n" +
             "Cmd-click or long press to select multiple tiles, then drag them into a destination.\n\n" +
-            "Choose your screenshot save folder to collect new screenshots: newest 10, one-hour expiry.\n\n" +
+            "Desktop is the default screenshot folder. Allow access or choose another save folder: newest 10, one-hour expiry.\n\n" +
             "Remove selected and Clear all remove references only. Stop turns off screenshot collection."
         alert.addButton(withTitle: "Got it")
         alert.runModal()
