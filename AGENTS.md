@@ -15,7 +15,7 @@ Product name is DropShelf. Xcode project/schemes and internal executable remain 
 | SelfDrop/FileDragView.swift | Native buttons/tiles, selection/long press, typed drag sessions, folder picker, bounded previews |
 | SelfDrop/ShelfStore.swift | Main-actor references/UUID selection; serial resolver; in-memory bookmarks; dedup, screenshot FIFO/expiry |
 | SelfDrop/ScreenshotMonitor.swift | Selected-directory DispatchSource notifications, bounded reconciliation, screenshot metadata/readiness |
-| SelfDropTests/SelfDropTests.swift | Seven Swift Testing checks with injected-clock expiry and real-file fixtures |
+| SelfDropTests/SelfDropTests.swift | Ten Swift Testing checks with injected-clock expiry and real-file fixtures |
 | SelfDropTests/ShelfStore.swift | Relative symlink to production source; never replace with a copied implementation |
 | downloads/ | Public ZIP and SHA-256 checksum linked in README |
 | scripts/create-dmg.sh | Experimental packaging; disk-image creation is blocked here |
@@ -25,7 +25,8 @@ ContentView.swift is an unused starter excluded from compilation. The brief was 
 ## Constraints to preserve
 
 - UI/AppKit/state on main actor; filesystem/preview IO bounded and off UI thread. No recursive scans or continuous directory/clipboard polling.
-- References only, in memory: no database, restoration, persisted bookmarks, copied originals, automatic original deletion/move, networking or telemetry.
+- Files remain references only. Owner-authorized text snippets are held in memory: 50 entries, 65,536 UTF-8 bytes per entry, no automatic clipboard monitoring, exact-content deduplication, cleared at shutdown. Files/Text share the four-tile viewport; never grow the panel for text. Copy uses native plain-text NSPasteboard; file drag payloads remain typed file URLs.
+- Session-only state: no database, restoration, persisted bookmarks, copied originals, automatic original deletion/move, networking or telemetry.
 - Use typed native file URLs, one NSDraggingItem per selected file, copy-only operations. Never send plain text paths or claim upload success from a drag-end operation.
 - Retain ordered drag snapshots and security access until terminal callback. Removal/expiry cannot invalidate active snapshots. Stale results cannot resurrect removed items.
 - Manual cap 500 with explicit refusal. Automatic queue newest 10; each expires at one hour; one next-expiry task. Manual promotion removes automatic membership. Clear removes references but keeps future monitoring; Stop disables collection.
@@ -40,7 +41,7 @@ Use Xcode BuildProject for IDE builds. Run tests with SelfDropTests; the app sch
 
 Clear cached URL resource values before revalidating availability: a real-file deletion test caught stale metadata. Snapshots require validation within five seconds. A stale/checking selection now retains the held press while refreshing and resumes its native drag only while the left button is still down. Release cancels the pending gesture. Keep source tiles alive during this interval; unavailable or changed selections must never silently become a partial drag. Ordinary bookmarks offer best-effort rename/move resolution. Noninterruptible metadata calls can delay the single worker but must not block UI.
 
-Recorded: seven tests passed; synthetic directory-event fixtures passed; Release build and ad hoc signature verification passed. Pending: real screenshot collection on owner setup, redesigned UI/drag regression checks, full-screen/Stage Manager/multiple displays, permission denial, accessibility, memory/CPU/soak, other-Mac installation. Never relabel pending work as passed.
+Recorded: ten tests passed (including three text checks); synthetic directory-event fixtures passed; Release build and ad hoc signature verification passed. Pending: real screenshot collection on owner setup, redesigned UI/drag regression checks, full-screen/Stage Manager/multiple displays, permission denial, accessibility, memory/CPU/soak, other-Mac installation. Never relabel pending work as passed.
 
 ## Download and packaging
 
@@ -55,3 +56,7 @@ The owner requires detailed commits from now on. Keep each change focused and ex
 ## Icon and app details update
 
 The owner-supplied icon is preserved at design/appicon.svg. scripts/render-app-icon.swift exports its exact simple vector geometry into all ten native macOS AppIcon slots with transparency; update the exporter if the artwork changes. SelfDropApp now supplies About, Show Shelf (Shift-Command-S), usage help and Dock reopen handling. Shelf header uses the bundled app icon. Current version 1.0.2/build 3; project/scheme/executable names are unchanged.
+
+## Text shelf update
+
+The current source adds Text → Save clipboard, compact selectable previews, Copy, explicit text drops and focused ⌘V/⌘C shortcuts. Clear all clears both file references and text; removal targets the active section. No text persistence or automatic clipboard history. Native snippet confirmed exact clipboard round trip, four bounded previews and unchanged preferred panel height. Real cross-app paste and interaction remain manual checks. The public 1.0.2 ZIP has not been replaced with these source changes. See verification/text-shelf.md.

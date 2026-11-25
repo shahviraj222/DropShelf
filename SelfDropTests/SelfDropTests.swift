@@ -49,6 +49,49 @@ struct SelfDropTests {
         #expect(store.items.isEmpty)
     }
 
+    @Test func textPreservesContentDeduplicatesAndBoundsPreview() throws {
+        let store = ShelfStore()
+        defer { store.shutdown() }
+        let content = "  https://example.com/path?q=hello\n\n" + String(repeating: "Unicode 🦋 content ", count: 30)
+        #expect(store.registerText(content) == .added)
+        let saved = try #require(store.selectedText)
+        #expect(saved.text == content)
+        #expect(saved.preview.count <= 80)
+        #expect(!saved.preview.contains("\n"))
+        #expect(store.registerText(content) == .duplicate)
+        #expect(store.textClips.count == 1)
+        #expect(store.selectedTextID == saved.id)
+        #expect(store.items.isEmpty)
+    }
+
+    @Test func textCapacityAndByteLimitsRefuseWithoutEviction() {
+        let store = ShelfStore()
+        defer { store.shutdown() }
+        #expect(store.registerText(" \n\t") == .empty)
+        #expect(store.registerText(String(repeating: "x", count: 65_537)) == .tooLarge)
+        #expect(store.registerText(String(repeating: "x", count: 65_536)) == .added)
+        for index in 1..<50 { #expect(store.registerText("entry \(index)") == .added) }
+        #expect(store.registerText("overflow") == .full)
+        #expect(store.textClips.count == 50)
+        #expect(store.textClips.contains { $0.text.utf8.count == 65_536 })
+    }
+
+    @Test func textRemovalClearAndFreshSession() {
+        let store = ShelfStore()
+        defer { store.shutdown() }
+        store.registerText("first")
+        store.registerText("second")
+        store.removeSelectedText()
+        #expect(store.textClips.map(\.text) == ["first"])
+        #expect(store.selectedText == nil)
+        store.register([URL(fileURLWithPath: "/tmp/reference-only")])
+        store.clear()
+        #expect(store.items.isEmpty && store.textClips.isEmpty)
+        #expect(ShelfStore().textClips.isEmpty)
+        store.shutdown()
+        #expect(store.registerText("late") != .added)
+    }
+
     @Test func duplicateURLsAndCapacityAreAtomic() {
         let store = ShelfStore()
         defer { store.shutdown() }

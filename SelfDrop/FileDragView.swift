@@ -86,6 +86,13 @@ final class FileDragView: NSView, NSDraggingSource {
     private var previewTask: Task<Void, Never>?
     private var multiSelect = false
     private var offset = 0
+    private var textOffset = 0
+    private var textStatus = "Save clipboard · select a tile · Copy to paste later"
+    private var showingText: Bool { sectionControl.selectedSegment == 1 }
+    private let sectionControl = NSSegmentedControl(labels: ["Files", "Text"],
+        trackingMode: .selectOne, target: nil, action: nil)
+    private let saveTextButton = NSButton(title: "Save clipboard", target: nil, action: nil)
+    private let copyTextButton = NSButton(title: "Copy", target: nil, action: nil)
     private var hover = false
     private var accepted = false
     private var monitor: ScreenshotMonitor?
@@ -114,18 +121,23 @@ final class FileDragView: NSView, NSDraggingSource {
 
     override init(frame: NSRect) {
         super.init(frame: frame)
-        registerForDraggedTypes([.fileURL])
+        registerForDraggedTypes([.fileURL, .string, .URL])
         setAccessibilityLabel("DropShelf")
         for (button, action) in [(folderButton, #selector(chooseFolder)),
             (removeButton, #selector(removeSelected)), (clearButton, #selector(clearAll)),
             (headerButton, #selector(closeShelf)),
             (stopButton, #selector(stopMonitoring)),
-            (retryButton, #selector(retry))] {
+            (retryButton, #selector(retry)), (saveTextButton, #selector(saveClipboard)),
+            (copyTextButton, #selector(copySelectedText))] {
             button.target = self
             button.action = action
             button.bezelStyle = .rounded
             button.font = .systemFont(ofSize: 11)
         }
+        sectionControl.target = self
+        sectionControl.action = #selector(changeSection)
+        sectionControl.selectedSegment = 0
+        sectionControl.setAccessibilityLabel("Shelf content")
         headerButton.isTransparent = true
         headerButton.identifier = NSUserInterfaceItemIdentifier("collapseShelfHeader")
         headerButton.setAccessibilityLabel("Collapse DropShelf")
@@ -184,25 +196,55 @@ final class FileDragView: NSView, NSDraggingSource {
         previewTask?.cancel()
         subviews.forEach { $0.removeFromSuperview() }
         offset = min(offset, max(0, store.manualItems.count - 4))
+        textOffset = min(textOffset, max(0, store.textClips.count - 4))
         if expanded {
             for button in [folderButton, removeButton, clearButton, headerButton, stopButton, retryButton] {
                 addSubview(button)
             }
+            addSubview(sectionControl)
+            sectionControl.frame = NSRect(x: 14, y: 44, width: 192, height: 24)
+            retryButton.isHidden = showingText
+            if showingText {
+                addSubview(saveTextButton)
+                addSubview(copyTextButton)
+                copyTextButton.frame = NSRect(x: 146, y: 218, width: 55, height: 24)
+                copyTextButton.isEnabled = store.selectedText != nil
+                saveTextButton.frame = NSRect(x: 205, y: 218, width: 101, height: 24)
+            }
             headerButton.frame = NSRect(x: 8, y: 6, width: 224, height: 34)
             clearButton.frame = NSRect(x: 236, y: 10, width: 68, height: 24)
             removeButton.frame = NSRect(x: 14, y: 218, width: 128, height: 24)
-            removeButton.isEnabled = !store.selection.isEmpty
+            removeButton.isEnabled = showingText ? store.selectedText != nil : !store.selection.isEmpty
             retryButton.frame = NSRect(x: 146, y: 218, width: 55, height: 24)
             folderButton.frame = NSRect(x: 12, y: preferredHeight - 40, width: 238, height: 26)
             stopButton.frame = NSRect(x: 254, y: preferredHeight - 40, width: 52, height: 26)
             stopButton.isEnabled = monitoring
             var tiles: [ShelfTile] = []
-            for (index, item) in store.manualItems.dropFirst(offset).prefix(4).enumerated() {
-                let tile = ShelfTile(item: item, shelf: self,
-                    frame: NSRect(x: 14 + (index % 2) * 147, y: 76 + (index / 2) * 66,
-                                  width: 139, height: 60))
-                addSubview(tile)
-                tiles.append(tile)
+            if showingText {
+                for (index, clip) in store.textClips.dropFirst(textOffset).prefix(4).enumerated() {
+                    let tile = NSButton(title: clip.preview, target: self, action: #selector(selectText(_:)))
+                    tile.identifier = NSUserInterfaceItemIdentifier(clip.id.uuidString)
+                    tile.frame = NSRect(x: 14 + (index % 2) * 147, y: 76 + (index / 2) * 66,
+                                        width: 139, height: 60)
+                    tile.setButtonType(.pushOnPushOff)
+                    tile.bezelStyle = .regularSquare
+                    tile.state = store.selectedTextID == clip.id ? .on : .off
+                    tile.font = .systemFont(ofSize: 11)
+                    tile.lineBreakMode = .byTruncatingTail
+                    tile.image = NSImage(systemSymbolName: "text.alignleft", accessibilityDescription: nil)
+                    tile.imagePosition = .imageAbove
+                    tile.setAccessibilityLabel("Saved text: " + clip.preview)
+                    tile.toolTip = "Select, then Copy to paste in another app"
+                    addSubview(tile)
+                }
+            } else {
+                for (index, item) in store.manualItems.dropFirst(offset).prefix(4).enumerated() {
+                    let tile = ShelfTile(item: item, shelf: self,
+                        frame: NSRect(x: 14 + (index % 2) * 147, y: 76 + (index / 2) * 66,
+                                      width: 139, height: 60))
+                    addSubview(tile)
+                    tiles.append(tile)
+                }
             }
             for (index, item) in store.screenshots.enumerated() {
                 let tile = ShelfTile(item: item, shelf: self,
@@ -251,10 +293,11 @@ final class FileDragView: NSView, NSDraggingSource {
             in: NSRect(x: 12, y: 9, width: 28, height: 28), from: .zero,
             operation: .sourceOver, fraction: 1, respectFlipped: true, hints: nil)
         text("DropShelf", x: 45, y: 13, size: 17, bold: true)
-        text("Manually added", x: 14, y: 48, size: 12, bold: true)
-        text("\(store.manualItems.count)", x: 274, y: 48, size: 11, color: .secondaryLabelColor)
-        if store.manualItems.isEmpty {
-            text("Drop files here", x: 105, y: 116, size: 12, color: .secondaryLabelColor)
+        text(showingText ? "\(store.textClips.count)/50" : "\(store.manualItems.count)",
+             x: 270, y: 48, size: 11, color: .secondaryLabelColor)
+        if showingText ? store.textClips.isEmpty : store.manualItems.isEmpty {
+            text(showingText ? "Save copied text here" : "Drop files here",
+                 x: showingText ? 85 : 105, y: 116, size: 12, color: .secondaryLabelColor)
         }
         text("Recent screenshots", x: 14, y: 251, size: 12, bold: true)
         text("\(store.screenshots.count)/10", x: 267, y: 251, size: 11, color: .secondaryLabelColor)
@@ -264,11 +307,12 @@ final class FileDragView: NSView, NSDraggingSource {
         }
         let paragraph = NSMutableParagraphStyle()
         paragraph.lineBreakMode = .byTruncatingTail
-        (screenshotStatus as NSString).draw(
+        ((showingText ? textStatus : screenshotStatus) as NSString).draw(
             in: NSRect(x: 14, y: preferredHeight - 88, width: 292, height: 16),
             withAttributes: [.font: NSFont.systemFont(ofSize: 10),
                 .foregroundColor: NSColor.secondaryLabelColor, .paragraphStyle: paragraph])
-        text("\(store.selection.count) selected · screenshots expire after 1 hour",
+        let selectionCount = showingText ? (store.selectedText == nil ? 0 : 1) : store.selection.count
+        text("\(selectionCount) selected · screenshots expire after 1 hour",
              x: 14, y: preferredHeight - 68, size: 10, color: .secondaryLabelColor)
         toolTip = message + "\n" + screenshotStatus
     }
@@ -338,12 +382,75 @@ final class FileDragView: NSView, NSDraggingSource {
         screenshotStatus = "Automatic collection stopped"
         reload()
     }
-    @objc private func removeSelected() { store.remove(store.selection) }
-    @objc private func clearAll() { store.remove(Set(store.items.map(\.id))) }
+    @objc private func removeSelected() {
+        if showingText { store.removeSelectedText() }
+        else { store.remove(store.selection) }
+    }
+    @objc private func clearAll() { store.clear() }
+
+    @objc private func changeSection() { reload() }
+
+    @objc private func selectText(_ sender: NSButton) {
+        guard let value = sender.identifier?.rawValue, let id = UUID(uuidString: value) else { return }
+        store.selectedTextID = id
+        window?.makeFirstResponder(self)
+        reload()
+    }
+
+    @objc private func saveClipboard() {
+        guard let value = NSPasteboard.general.string(forType: .string)
+            ?? NSPasteboard.general.string(forType: .URL) else {
+            textStatus = "Clipboard has no plain text or URL"
+            sectionControl.selectedSegment = 1
+            reload()
+            return
+        }
+        _ = saveText(value)
+    }
+
+    @discardableResult
+    func saveText(_ value: String) -> Bool {
+        sectionControl.selectedSegment = 1
+        let result = store.registerText(value)
+        switch result {
+        case .added: textStatus = "Text saved · select a tile, then Copy"
+        case .duplicate: textStatus = "Already saved · existing tile selected"
+        case .empty: textStatus = "Nothing to save"
+        case .tooLarge: textStatus = "Text is too large · maximum 64 KB per entry"
+        case .full: textStatus = "Text shelf is full · remove entries first (50 maximum)"
+        }
+        textOffset = 0
+        if result == .added || result == .duplicate {
+            accepted = true
+            feedbackTask?.cancel()
+            feedbackTask = Task { @MainActor [weak self] in
+                do { try await Task.sleep(for: .milliseconds(300)) } catch { return }
+                self?.accepted = false
+                self?.needsDisplay = true
+            }
+        }
+        reload()
+        return result == .added || result == .duplicate
+    }
+
+    static func writeText(_ value: String, to pasteboard: NSPasteboard) -> Bool {
+        pasteboard.clearContents()
+        return pasteboard.setString(value, forType: .string)
+    }
+
+    @objc private func copySelectedText() {
+        guard let clip = store.selectedText else { return }
+        textStatus = Self.writeText(clip.text, to: .general)
+            ? "Copied · paste into your destination with ⌘V"
+            : "Could not write to the clipboard"
+        needsDisplay = true
+    }
     @objc private func closeShelf() { toggle?() }
     @objc private func retry() { store.refresh(store.selection) }
 
     func select(_ item: ShelfItem, event: NSEvent) {
+        sectionControl.selectedSegment = 0
+        store.selectedTextID = nil
         pendingDragEvent = nil
         window?.makeFirstResponder(self)
         if event.modifierFlags.contains(.command) || multiSelect {
@@ -371,30 +478,51 @@ final class FileDragView: NSView, NSDraggingSource {
     }
     override func mouseDown(with event: NSEvent) { if !expanded { toggle?() } }
     override func scrollWheel(with event: NSEvent) {
+        if showingText {
+            textOffset = max(0, min(max(0, store.textClips.count - 4),
+                textOffset + (event.scrollingDeltaY < 0 ? 2 : -2)))
+            reload()
+            return
+        }
         offset = max(0, min(max(0, store.manualItems.count - 4),
                            offset + (event.scrollingDeltaY < 0 ? 2 : -2)))
         reload()
     }
     override func keyDown(with event: NSEvent) {
+        if event.modifierFlags.contains(.command), event.charactersIgnoringModifiers == "v" {
+            saveClipboard()
+            return
+        }
+        if showingText, event.modifierFlags.contains(.command), event.charactersIgnoringModifiers == "c" {
+            copySelectedText()
+            return
+        }
         if event.keyCode == 51 { removeSelected() }
         else if event.keyCode == 53 { multiSelect = false; store.selection.removeAll(); toggle?() }
         else if event.modifierFlags.contains(.command), event.charactersIgnoringModifiers == "a" {
-            store.selection = Set(store.items.map(\.id)); reload()
+            if !showingText { store.selection = Set(store.items.map(\.id)); reload() }
         } else { super.keyDown(with: event) }
     }
 
     override func draggingEntered(_ sender: any NSDraggingInfo) -> NSDragOperation {
         hover = sender.draggingSourceOperationMask.contains(.copy) &&
-            sender.draggingPasteboard.canReadObject(forClasses: [NSURL.self],
-                options: [.urlReadingFileURLsOnly: true])
+            (sender.draggingPasteboard.canReadObject(forClasses: [NSURL.self],
+                options: [.urlReadingFileURLsOnly: true]) ||
+             sender.draggingPasteboard.availableType(from: [.string, .URL]) != nil)
         needsDisplay = true
         return hover ? .copy : []
     }
     override func draggingExited(_ sender: (any NSDraggingInfo)?) { hover = false; needsDisplay = true }
     override func performDragOperation(_ sender: any NSDraggingInfo) -> Bool {
         hover = false
-        guard sender.draggingSourceOperationMask.contains(.copy),
-              store.register(Self.fileURLs(from: sender.draggingPasteboard)) else {
+        guard sender.draggingSourceOperationMask.contains(.copy) else { return false }
+        let urls = Self.fileURLs(from: sender.draggingPasteboard)
+        if urls.isEmpty {
+            guard let value = sender.draggingPasteboard.string(forType: .string)
+                ?? sender.draggingPasteboard.string(forType: .URL) else { return false }
+            return saveText(value)
+        }
+        guard store.register(urls) else {
             message = "Cannot add files. Manual limit is 500."
             needsDisplay = true
             return false

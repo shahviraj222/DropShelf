@@ -63,9 +63,62 @@ struct ShelfItem: Identifiable {
     let access: ReferenceAccess
 }
 
+struct TextClip: Identifiable {
+    let id = UUID()
+    let text: String
+
+    var preview: String {
+        String(text.prefix(80)).split(whereSeparator: { $0.isWhitespace }).joined(separator: " ")
+    }
+}
+
+enum TextRegistrationResult: Equatable {
+    case added, duplicate, empty, tooLarge, full
+}
+
 @MainActor
 final class ShelfStore {
     private(set) var items: [ShelfItem] = []
+    private(set) var textClips: [TextClip] = []
+    var selectedTextID: UUID?
+    let textLimit = 50
+    let textByteLimit = 65_536
+
+    @discardableResult
+    func registerText(_ text: String) -> TextRegistrationResult {
+        guard !stopped else { return .full }
+        guard !text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { return .empty }
+        guard text.utf8.count <= textByteLimit else { return .tooLarge }
+        if let existing = textClips.first(where: { $0.text == text }) {
+            selectedTextID = existing.id
+            changed?()
+            return .duplicate
+        }
+        guard textClips.count < textLimit else { return .full }
+        let clip = TextClip(text: text)
+        textClips.insert(clip, at: 0)
+        selectedTextID = clip.id
+        changed?()
+        return .added
+    }
+
+    var selectedText: TextClip? { textClips.first { $0.id == selectedTextID } }
+
+    func removeSelectedText() {
+        textClips.removeAll { $0.id == selectedTextID }
+        selectedTextID = nil
+        changed?()
+    }
+
+    func clear() {
+        items.removeAll()
+        queue.removeAll()
+        selection.removeAll()
+        textClips.removeAll()
+        selectedTextID = nil
+        scheduleExpiry()
+        changed?()
+    }
     var selection: Set<UUID> = []
     var changed: (() -> Void)?
     private var queue: [UUID] = []
@@ -212,6 +265,8 @@ final class ShelfStore {
 
     func shutdown() {
         stopped = true
+        textClips.removeAll()
+        selectedTextID = nil
         expiryTask?.cancel()
         worker?.cancel()
         queue.removeAll()

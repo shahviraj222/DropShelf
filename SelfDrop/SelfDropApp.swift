@@ -40,7 +40,7 @@ final class SelfDropApp: NSObject, NSApplicationDelegate {
         NSApplication.shared.orderFrontStandardAboutPanel(options: [
             .applicationName: "DropShelf",
             .credits: NSAttributedString(string:
-                "A temporary native shelf for files, folders and recent screenshots.\n" +
+                "A temporary native shelf for files, folders, text and recent screenshots.\n" +
                 "Built with Swift and AppKit. Originals stay untouched.\n" +
                 "App icon supplied by the project owner.")
         ])
@@ -57,7 +57,8 @@ final class SelfDropApp: NSObject, NSApplicationDelegate {
             "Drop files onto the blue edge tab, then click it to open the shelf.\n\n" +
             "Cmd-click or long press to select multiple tiles, then drag them into a destination.\n\n" +
             "Desktop is the default screenshot folder. Allow access or choose another save folder: newest 10, one-hour expiry.\n\n" +
-            "Remove selected and Clear all remove references only. Stop turns off screenshot collection."
+            "Text: copy content, choose Text → Save clipboard, then select a tile and Copy to paste elsewhere. Text stays only until quitting.\n\n" +
+            "Remove selected and Clear all remove staged entries, never original files. Stop turns off screenshot collection."
         alert.addButton(withTitle: "Got it")
         alert.runModal()
     }

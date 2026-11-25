@@ -2,9 +2,9 @@
 
 <img src="design/appicon.svg" width="80" height="80" alt="DropShelf app icon">
 
-A native macOS shelf that keeps files within reach while you switch between apps. Drop files or folders onto the blue tab at the right edge, then drag them from the shelf into a supported destination.
+A native macOS shelf that keeps files and saved text within reach while you switch between apps. Drop files or folders onto the blue tab at the right edge, then drag them from the shelf into a supported destination.
 
-DropShelf keeps **temporary references**, not copies of your files. Originals stay where they are, and the shelf starts empty after quitting.
+DropShelf keeps **temporary references**, not copies of your files. Originals stay where they are, and the shelf starts empty after quitting. Text snippets are kept in memory for the current session.
 
 ## Download and install
 
@@ -28,9 +28,10 @@ This is an early development build with ad hoc signing, **without Developer ID s
 2. **Open the shelf:** click the tab. The panel opens inward from the right edge, as shown on the right.
 3. **Select and drag:** press a tile and move while holding the mouse button to drag in one gesture; no release and second click is required. A click without movement selects the tile. Cmd-click selects multiple tiles; long press enables multi-selection. Use the actual attachment area or folder, such as a ChatGPT composer or VS Code Explorer folder. Acceptance depends on the receiving app and drop zone.
 4. **Collect screenshots:** Desktop is the default folder on startup. If macOS blocks access, click **Allow Desktop access…** and confirm Desktop in the folder picker. Use the folder button to choose another save location. Save a new screenshot after enabling collection. The newest 10 references appear separately and each expires after one hour. **Stop** disables collection. On restart, the app returns to Desktop; another folder must be selected again for that session.
-5. **Remove items:** use **Remove selected**, Delete, or **Clear all**. These remove references only, never original files. Clear all leaves monitoring enabled for future screenshots.
-6. **App menu:** use **About DropShelf** for version details, **How to Use DropShelf** for the built-in guide, or **Show Shelf** (**Shift-Command-S**) to open the panel. Clicking the Dock icon also opens the shelf.
-7. **Close the panel:** click the app icon/title header to return to the tab. Outgoing drags retain staged items.
+5. **Save multiple text snippets (current source build):** copy a URL or text, open **Text → Save clipboard**, then repeat for other content. Select a compact tile and press **Copy**, then paste into another app with **⌘V**. With the shelf focused, **⌘V** saves and **⌘C** copies the selected text. Text drops are also accepted. Scroll to browse more tiles. The shelf shows four short previews at a time without growing; full text is preserved. Up to 50 entries, 64 KB of UTF-8 per entry; duplicates select the existing entry. Nothing is saved after quitting. The published 1.0.2 ZIP predates this feature; build from source to use it.
+6. **Remove items:** use **Remove selected**, Delete, or **Clear all**. These remove file references or saved text, never original files. Clear all leaves monitoring enabled for future screenshots.
+7. **App menu:** use **About DropShelf** for version details, **How to Use DropShelf** for the built-in guide, or **Show Shelf** (**Shift-Command-S**) to open the panel. Clicking the Dock icon also opens the shelf.
+8. **Close the panel:** click the app icon/title header to return to the tab. Outgoing drags retain staged items.
 
 Collection watches only the selected folder. It does not capture the screen, import old screenshots, intercept the clipboard, or materialize floating screenshot promises. Missing/delayed screenshot metadata can prevent automatic collection; manually dropping the saved file remains available.
 
@@ -39,7 +40,7 @@ Collection watches only the selected folder. It does not capture the screen, imp
 | Technology | Purpose |
 |---|---|
 | Swift + AppKit | Native controls, app lifecycle, floating nonactivating NSPanel, pointer gestures |
-| NSDraggingSession / NSDraggingItem / NSPasteboard | Typed file URLs, one payload per selected file, copy-only operations |
+| NSDraggingSession / NSDraggingItem / NSPasteboard | Typed file URLs, one payload per selected file, copy-only operations; explicit plain-text clipboard save/copy |
 | Foundation | In-memory state/bookmarks, identity deduplication, background reference validation |
 | Dispatch directory notifications + macOS metadata | Event-driven screenshot discovery without continuous polling |
 | ImageIO | Downsampled previews, serial decoding and bounded cache |
@@ -60,7 +61,7 @@ Built with **Xcode 27.2 / macOS 27.2 SDK**, targeting **macOS 27.2**. The unused
 Select **SelfDropTests** and press **Command-U**. The hostless target compiles the production store through a relative symlink; preserve it when checking out the repository.
 
 - Latest recorded app/Release builds passed and the packaged app passed deep/strict code-signature verification.
-- **Seven Swift Testing tests passed:** capacity/deduplication, stale results, drag snapshots, missing files, screenshot FIFO, expiry boundaries, promotion and clearing.
+- **Ten Swift Testing tests passed:** file capacity/deduplication, stale results, drag snapshots, missing files, screenshot FIFO/expiry, promotion/clearing, and text preservation, bounds and removal. A native snippet also verified exact clipboard round trip, four bounded previews and unchanged panel height. See [text verification](verification/text-shelf.md).
 - A directory-event fixture check collected a new metadata-marked image and excluded an old file and unrelated PNG.
 - The owner reported working VS Code, email and ChatGPT transfers in the earlier drag build. The redesigned UI and actual screenshot-capture path still need manual verification.
 
