@@ -8,7 +8,9 @@ DropShelf keeps **temporary references**, not copies of your files. Originals st
 
 ## Download and install
 
-**[Download DropShelf 1.0.2 for Apple Silicon — ZIP](https://github.com/shahviraj222/DropShelf/raw/refs/heads/main/downloads/DropShelf-1.0.2-arm64.zip)** · [SHA-256 checksum](downloads/DropShelf-1.0.2-arm64.zip.sha256)
+**[Download DropShelf with text shelf — ZIP](https://github.com/shahviraj222/DropShelf/raw/refs/heads/main/downloads/DropShelf-1.0.2-text-preview-arm64.zip)** · [SHA-256 checksum](downloads/DropShelf-1.0.2-text-preview-arm64.zip.sha256)
+
+Latest owner-supplied app, packaged on November 25, 2026. This is a **Debug preview**, still reporting version 1.0.2/build 3, with the text shelf included. [Package verification and provenance](verification/text-preview-package.md). The [previous optimized Release ZIP](downloads/DropShelf-1.0.2-arm64.zip) remains available but predates the text shelf.
 
 Requires **macOS 27.2 or later on Apple Silicon**. This build does not support Intel Macs or older macOS versions.
 
@@ -28,7 +30,7 @@ This is an early development build with ad hoc signing, **without Developer ID s
 2. **Open the shelf:** click the tab. The panel opens inward from the right edge, as shown on the right.
 3. **Select and drag:** press a tile and move while holding the mouse button to drag in one gesture; no release and second click is required. A click without movement selects the tile. Cmd-click selects multiple tiles; long press enables multi-selection. Use the actual attachment area or folder, such as a ChatGPT composer or VS Code Explorer folder. Acceptance depends on the receiving app and drop zone.
 4. **Collect screenshots:** Desktop is the default folder on startup. If macOS blocks access, click **Allow Desktop access…** and confirm Desktop in the folder picker. Use the folder button to choose another save location. Save a new screenshot after enabling collection. The newest 10 references appear separately and each expires after one hour. **Stop** disables collection. On restart, the app returns to Desktop; another folder must be selected again for that session.
-5. **Save multiple text snippets (current source build):** copy a URL or text, open **Text → Save clipboard**, then repeat for other content. Select a compact tile and press **Copy**, then paste into another app with **⌘V**. With the shelf focused, **⌘V** saves and **⌘C** copies the selected text. Text drops are also accepted. Scroll to browse more tiles. The shelf shows four short previews at a time without growing; full text is preserved. Up to 50 entries, 64 KB of UTF-8 per entry; duplicates select the existing entry. Nothing is saved after quitting. The published 1.0.2 ZIP predates this feature; build from source to use it.
+5. **Save multiple text snippets:** copy a URL or text, open **Text → Save clipboard**, then repeat for other content. Select a compact tile and press **Copy**, then paste into another app with **⌘V**. With the shelf focused, **⌘V** saves and **⌘C** copies the selected text. Text drops are also accepted. Scroll to browse more tiles. The shelf shows four short previews at a time without growing; full text is preserved. Up to 50 entries, 64 KB of UTF-8 per entry; duplicates select the existing entry. Nothing is saved after quitting. Use the text preview download above or build from source to use this feature.
 6. **Remove items:** use **Remove selected**, Delete, or **Clear all**. These remove file references or saved text, never original files. Clear all leaves monitoring enabled for future screenshots.
 7. **App menu:** use **About DropShelf** for version details, **How to Use DropShelf** for the built-in guide, or **Show Shelf** (**Shift-Command-S**) to open the panel. Clicking the Dock icon also opens the shelf.
 8. **Close the panel:** click the app icon/title header to return to the tab. Outgoing drags retain staged items.

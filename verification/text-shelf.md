@@ -18,4 +18,4 @@ The owner requested multiple saved text/URL snippets with compact previews and u
 
 ## Pending and distribution
 
-Real mouse/keyboard interaction, scrolling, cross-app paste and accessibility still need manual verification. No new memory-budget acceptance claim is made. The downloadable 1.0.2 ZIP and its checksum remain unchanged; this feature currently requires building the source in Xcode.
+Real mouse/keyboard interaction, scrolling, cross-app paste and accessibility still need manual verification. No new memory-budget acceptance claim is made. The downloadable 1.0.2 ZIP and its checksum remain unchanged; the owner-supplied app containing the feature is now separately published as a text preview; see [package verification](text-preview-package.md).

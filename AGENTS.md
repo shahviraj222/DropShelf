@@ -59,4 +59,8 @@ The owner-supplied icon is preserved at design/appicon.svg. scripts/render-app-i
 
 ## Text shelf update
 
-The current source adds Text → Save clipboard, compact selectable previews, Copy, explicit text drops and focused ⌘V/⌘C shortcuts. Clear all clears both file references and text; removal targets the active section. No text persistence or automatic clipboard history. Native snippet confirmed exact clipboard round trip, four bounded previews and unchanged preferred panel height. Real cross-app paste and interaction remain manual checks. The public 1.0.2 ZIP has not been replaced with these source changes. See verification/text-shelf.md.
+The current source adds Text → Save clipboard, compact selectable previews, Copy, explicit text drops and focused ⌘V/⌘C shortcuts. Clear all clears both file references and text; removal targets the active section. No text persistence or automatic clipboard history. Native snippet confirmed exact clipboard round trip, four bounded previews and unchanged preferred panel height. Real cross-app paste and interaction remain manual checks. The original Release ZIP is preserved. The latest owner-supplied Debug app is now published separately as downloads/DropShelf-1.0.2-text-preview-arm64.zip; see verification/text-preview-package.md. See verification/text-shelf.md.
+
+## Latest owner-supplied download
+
+README now points to downloads/DropShelf-1.0.2-text-preview-arm64.zip, packaged from the owner-supplied SelfDropTests/SelfDrop.app without rebuilding or altering its signed contents. It is arm64, macOS 27.2+, ad hoc signed, not notarized, and contains Debug/preview libraries. Its internal version remains 1.0.2/build 3. Signature and extracted-file equality/ZIP checks passed. Do not describe this artifact as an optimized Release or assert exact source provenance. Original 1.0.2 Release remains available.
