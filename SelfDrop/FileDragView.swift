@@ -221,7 +221,10 @@ final class FileDragView: NSView, NSDraggingSource {
             text(accepted ? "✓" : (hover ? "↓" : "‹"), x: 9, y: 19, size: 17, color: .white)
             return
         }
-        text("DropShelf", x: 14, y: 13, size: 17, bold: true)
+        NSImage(named: NSImage.applicationIconName)?.draw(
+            in: NSRect(x: 12, y: 9, width: 28, height: 28), from: .zero,
+            operation: .sourceOver, fraction: 1, respectFlipped: true, hints: nil)
+        text("DropShelf", x: 45, y: 13, size: 17, bold: true)
         text("Manually added", x: 14, y: 48, size: 12, bold: true)
         text("\(store.manualItems.count)", x: 274, y: 48, size: 11, color: .secondaryLabelColor)
         if store.manualItems.isEmpty {

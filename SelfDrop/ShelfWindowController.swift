@@ -38,6 +38,11 @@ final class ShelfWindowController: NSWindowController {
 
     required init?(coder: NSCoder) { nil }
 
+    func openShelf() {
+        if !expanded { toggle() }
+        showWindow(nil)
+    }
+
     @objc func toggle() {
         expanded.toggle()
         tab.expanded = expanded
