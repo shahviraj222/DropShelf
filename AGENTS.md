@@ -84,3 +84,7 @@ Expanded FileDragView background clicks clear file/text selection, Shift anchor 
 ## Header text layout
 
 Selection count and screenshot expiry now appear directly below the app title. Files/Text controls and tile sections shift down 18 points while preferred panel dimensions stay unchanged. The normal Watching new screenshots status and waiting-for-saved-screenshot placeholder are hidden; permission/error/stopped feedback remains. See verification/header-text-layout.md.
+
+## Header screenshot controls
+
+Folder and Stop now share a row below the title/selection summary and above Files/Text. Tile sections/actions move down 36 points; footer feedback moves into the freed bottom row. Preferred panel dimensions and button actions remain unchanged. See verification/header-text-layout.md.
