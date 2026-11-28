@@ -19,7 +19,7 @@ final class ShelfMoveHandle: NSButton {
         press = event
         cancelledClick = false
         holdTask = Task { @MainActor [weak self] in
-            do { try await Task.sleep(for: .milliseconds(700)) } catch { return }
+            do { try await Task.sleep(for: .milliseconds(400)) } catch { return }
             guard let self, let event = self.press, NSEvent.pressedMouseButtons & 1 != 0 else { return }
             // performDrag returns immediately and may consume mouse-up, so clear first.
             self.press = nil

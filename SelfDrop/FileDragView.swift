@@ -141,7 +141,7 @@ final class FileDragView: NSView, NSDraggingSource {
         headerButton.isTransparent = true
         headerButton.identifier = NSUserInterfaceItemIdentifier("collapseShelfHeader")
         headerButton.setAccessibilityLabel("Collapse DropShelf")
-        headerButton.toolTip = "Click to collapse · hold 0.7 seconds to move"
+        headerButton.toolTip = "Click to collapse · hold 0.4 seconds to move"
         clearButton.toolTip = "Remove all shelf references. Original files stay untouched."
         removeButton.toolTip = "Remove selected references, not the original files."
         store.changed = { [weak self] in
@@ -281,7 +281,7 @@ final class FileDragView: NSView, NSDraggingSource {
             }
         } else {
             headerButton.frame = bounds
-            headerButton.toolTip = "Click to open · hold 0.7 seconds to move"
+            headerButton.toolTip = "Click to open · hold 0.4 seconds to move"
             addSubview(headerButton)
             cache.removeAll()
             cacheOrder.removeAll()

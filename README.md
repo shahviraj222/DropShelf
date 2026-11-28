@@ -34,7 +34,7 @@ This is an early development build with ad hoc signing, **without Developer ID s
 6. **Remove items:** use **Remove selected**, Delete, or **Clear all**. These remove file references or saved text, never original files. Clear all leaves monitoring enabled for future screenshots.
 7. **App menu:** use **About DropShelf** for version details, **How to Use DropShelf** for the built-in guide, or **Show Shelf** (**Shift-Command-S**) to open the panel. Clicking the Dock icon also opens the shelf.
 8. **Close the panel:** click the app icon/title header to return to the tab. Outgoing drags retain staged items.
-9. **Move the shelf (current source build):** hold the collapsed tab or app icon/title header for 0.7 seconds, then drag to the desired position. Short clicks still open/close it. The chosen position lasts for the session, including opening/closing; restarting returns it to the right edge.
+9. **Move the shelf (current source build):** hold the collapsed tab or app icon/title header for 0.4 seconds, then drag to the desired position. Short clicks still open/close it. The chosen position lasts for the session, including opening/closing; restarting returns it to the right edge.
 
 The November 28 file-paste and movement changes are source-only; the downloadable text preview above predates them. Multi-video upload into Google Drive in Chrome is under investigation: typed multi-file payload checks pass, but real Drive acceptance is unverified. See [verification](verification/multi-file-paste-and-movement.md).
 

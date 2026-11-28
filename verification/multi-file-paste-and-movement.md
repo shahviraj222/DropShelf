@@ -22,3 +22,7 @@ Window delegate move events retain a session-only center. Expansion/collapse ret
 Real held-press window movement, release before threshold, drag cancellation, VoiceOver, multiple physical displays/disconnect/Spaces and full-screen apps require manual checks. For Drive: compare two real, locally readable MP4/MOV files dragged directly from Finder with the same files pasted/staged into DropShelf, selected together and dragged into the same Drive folder. Record file count offered/accepted, whether upload starts and any Chrome/Drive error. If direct Finder upload also fails, investigate that baseline before changing payloads. Never infer upload completion from AppKit's drag-end operation.
 
 The public ZIP remains the older owner-supplied text preview; these changes require running the current SelfDrop source in Xcode. No new release package, performance acceptance or real third-party upload success is claimed.
+
+## Hold duration adjustment — 2026-11-28
+
+At the owner’s request, the tab/header movement hold is now 400 ms (0.4 seconds). Updated both tooltips, README and agent handoff. The separate file-tile multi-selection hold remains unchanged. Xcode BuildProject passed in 4.442 seconds with no errors; git diff --check passed. No new unit-suite or physical gesture check was run for this timing-only change. Public ZIP unchanged.
