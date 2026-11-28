@@ -76,3 +76,7 @@ ShelfMoveHandle handles short-click vs 400 ms hold on the collapsed tab/header. 
 ShelfStore.selectFile retains an anchor and uses Files visual order (manual then newest-first screenshots), inclusive Shift ranges and Command-Shift unions; ordinary group dragging/toggles remain intact. Clear/removal/shutdown invalidate anchors safely. Tests now total twelve.
 
 ScreenshotMonitor schedules the earliest event deadline at 50 ms without resetting it for every directory write. Per-candidate deadlines prevent noisy events consuming all four attempts; retries wait 150 ms, 750 ms and 2 seconds. At most one pending scan work item, 64 candidates and 4,096 nonrecursive entries. Stable nonzero size plus screenshot metadata remain required; no clipboard polling, filename fallback or pre-save capture. Invalid/deleted candidates clear retry state to avoid a past-due spin. Synthetic event checks passed, including 0.238-second collection under noise and delayed metadata; real screenshot saving/permissions remain owner checks. See verification/screenshot-responsiveness.md. Public ZIP is still older.
+
+## Empty-space deselection
+
+Expanded FileDragView background clicks clear file/text selection, Shift anchor and long-press multi-select mode while keeping all entries. Native tile/control hits remain separate; active drag snapshots are guarded. The background accepts first mouse in an inactive panel. ShelfStore.deselectAll is the reset entry point. Xcode build and attached-window hit-routing snippet passed; public ZIP unchanged. See verification/empty-space-deselection.md.

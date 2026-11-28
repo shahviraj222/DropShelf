@@ -1,0 +1,5 @@
+# Empty-space deselection — 2026-11-28
+
+Expanded shelf background mouse-down now clears selection through ShelfStore.deselectAll, resets the Shift anchor and multi-select mode, and cancels pending press state. Entries remain intact. Tile and button subviews handle their own hits; collapsed tab open/hold movement stays unchanged. The background accepts the first mouse event in an inactive panel. An active outgoing snapshot is guarded.
+
+Validation: Xcode BuildProject passed in 4.189 seconds, no errors. An initial unattached-view hit assertion stopped the snippet preview; diagnostic output showed a flipped-coordinate fixture mistake. Corrected the fixture by attaching the view to a real NSPanel and converting local points into superview coordinates. The final native snippet passed: blank space hits the shelf, a file tile hits ShelfTile, Clear all hits NSButton, blank-click clears file/text selection, six file references and one text snippet remain, and subsequent Shift-click does not reuse the cleared anchor. This is native local routing, not a physical pointer check. No unit-suite rerun for this small interaction change. Public ZIP unchanged.

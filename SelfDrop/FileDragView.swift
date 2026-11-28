@@ -494,7 +494,20 @@ final class FileDragView: NSView, NSDraggingSource {
         longPressTask?.cancel()
         reload()
     }
-    override func mouseDown(with event: NSEvent) { if !expanded { toggle?() } }
+    override func acceptsFirstMouse(for event: NSEvent?) -> Bool { true }
+
+    override func mouseDown(with event: NSEvent) {
+        if !expanded {
+            toggle?()
+            return
+        }
+        // Tiles and controls handle their own clicks; only bare shelf space reaches here.
+        guard dragSnapshot.isEmpty else { return }
+        endPress()
+        multiSelect = false
+        store.deselectAll()
+        window?.makeFirstResponder(self)
+    }
     override func scrollWheel(with event: NSEvent) {
         if showingText {
             textOffset = max(0, min(max(0, store.textClips.count - 4),

@@ -120,6 +120,13 @@ final class ShelfStore {
         scheduleExpiry()
         changed?()
     }
+    func deselectAll() {
+        selection.removeAll()
+        selectionAnchor = nil
+        selectedTextID = nil
+        changed?()
+    }
+
     private var selectionAnchor: UUID?
     var selection: Set<UUID> = []
 
