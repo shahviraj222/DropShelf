@@ -15,7 +15,7 @@ Product name is DropShelf. Xcode project/schemes and internal executable remain 
 | SelfDrop/FileDragView.swift | Native buttons/tiles, selection/long press, typed drag sessions, folder picker, bounded previews |
 | SelfDrop/ShelfStore.swift | Main-actor references/UUID selection; serial resolver; in-memory bookmarks; dedup, screenshot FIFO/expiry |
 | SelfDrop/ScreenshotMonitor.swift | Selected-directory DispatchSource notifications, bounded reconciliation, screenshot metadata/readiness |
-| SelfDropTests/SelfDropTests.swift | Ten Swift Testing checks with injected-clock expiry and real-file fixtures |
+| SelfDropTests/SelfDropTests.swift | Twelve Swift Testing checks with injected-clock expiry and real-file fixtures |
 | SelfDropTests/ShelfStore.swift | Relative symlink to production source; never replace with a copied implementation |
 | downloads/ | Public ZIP and SHA-256 checksum linked in README |
 | scripts/create-dmg.sh | Experimental packaging; disk-image creation is blocked here |
@@ -41,7 +41,7 @@ Use Xcode BuildProject for IDE builds. Run tests with SelfDropTests; the app sch
 
 Clear cached URL resource values before revalidating availability: a real-file deletion test caught stale metadata. Snapshots require validation within five seconds. A stale/checking selection now retains the held press while refreshing and resumes its native drag only while the left button is still down. Release cancels the pending gesture. Keep source tiles alive during this interval; unavailable or changed selections must never silently become a partial drag. Ordinary bookmarks offer best-effort rename/move resolution. Noninterruptible metadata calls can delay the single worker but must not block UI.
 
-Recorded: ten tests passed (including three text checks); synthetic directory-event fixtures passed; Release build and ad hoc signature verification passed. Pending: real screenshot collection on owner setup, redesigned UI/drag regression checks, full-screen/Stage Manager/multiple displays, permission denial, accessibility, memory/CPU/soak, other-Mac installation. Never relabel pending work as passed.
+Recorded: twelve tests passed (including three text and two Shift-range checks); synthetic directory-event fixtures passed; Release build and ad hoc signature verification passed. Pending: real screenshot collection on owner setup, redesigned UI/drag regression checks, full-screen/Stage Manager/multiple displays, permission denial, accessibility, memory/CPU/soak, other-Mac installation. Never relabel pending work as passed.
 
 ## Download and packaging
 
@@ -70,3 +70,9 @@ README now points to downloads/DropShelf-1.0.2-text-preview-arm64.zip, packaged 
 Finder clipboard file URLs now take priority over text on focused Command-V. Outgoing drags still use one native NSURL writer per snapshot entry, copy-only; video content is never loaded into memory. Real multi-video Google Drive/Chrome upload remains unverified; do not label the browser issue resolved from payload checks alone.
 
 ShelfMoveHandle handles short-click vs 400 ms hold on the collapsed tab/header. It passes the genuine original mouse-down to NSWindow.performDrag, clears gesture state before handoff (mouse-up may be consumed), and cancels pending hold on early release/movement or shutdown. ShelfWindowController uses a session-only center, delegate move events and visible-frame fitting; no position persistence or global mouse monitoring. Source-only; current public ZIP predates this change. See verification/multi-file-paste-and-movement.md.
+
+## Shift-click and screenshot responsiveness
+
+ShelfStore.selectFile retains an anchor and uses Files visual order (manual then newest-first screenshots), inclusive Shift ranges and Command-Shift unions; ordinary group dragging/toggles remain intact. Clear/removal/shutdown invalidate anchors safely. Tests now total twelve.
+
+ScreenshotMonitor schedules the earliest event deadline at 50 ms without resetting it for every directory write. Per-candidate deadlines prevent noisy events consuming all four attempts; retries wait 150 ms, 750 ms and 2 seconds. At most one pending scan work item, 64 candidates and 4,096 nonrecursive entries. Stable nonzero size plus screenshot metadata remain required; no clipboard polling, filename fallback or pre-save capture. Invalid/deleted candidates clear retry state to avoid a past-due spin. Synthetic event checks passed, including 0.238-second collection under noise and delayed metadata; real screenshot saving/permissions remain owner checks. See verification/screenshot-responsiveness.md. Public ZIP is still older.

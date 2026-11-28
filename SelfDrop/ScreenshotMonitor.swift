@@ -12,6 +12,9 @@ nonisolated final class ScreenshotMonitor: @unchecked Sendable {
     private let queue = DispatchQueue(label: "DropShelf.screenshots", qos: .utility)
     private var source: (any DispatchSourceFileSystemObject)?
     private var scheduled: DispatchWorkItem?
+    private var scheduledDeadline: DispatchTime?
+    private var scheduleToken = UUID()
+    private var nextAttempt: [URL: Date] = [:]
     private var known: Set<URL> = []
     private var pending: [URL: Int] = [:]
     private var sizes: [URL: Int] = [:]
@@ -53,11 +56,23 @@ nonisolated final class ScreenshotMonitor: @unchecked Sendable {
         scan(baseline: true)
     }
 
-    private func schedule() {
+    private func schedule(after delay: TimeInterval = 0.05) {
+        guard !stopped else { return }
+        let deadline = DispatchTime.now() + max(0, delay)
+        // Keep the earliest deadline: directory activity must not postpone discovery.
+        if let scheduledDeadline, scheduledDeadline.uptimeNanoseconds <= deadline.uptimeNanoseconds { return }
         scheduled?.cancel()
-        let work = DispatchWorkItem { [weak self] in self?.scan(baseline: false) }
+        let token = UUID()
+        scheduleToken = token
+        scheduledDeadline = deadline
+        let work = DispatchWorkItem { [weak self] in
+            guard let self, self.scheduleToken == token, !self.stopped else { return }
+            self.scheduled = nil
+            self.scheduledDeadline = nil
+            self.scan(baseline: false)
+        }
         scheduled = work
-        queue.asyncAfter(deadline: .now() + 0.4, execute: work)
+        queue.asyncAfter(deadline: deadline, execute: work)
     }
 
     private func scan(baseline: Bool) {
@@ -80,10 +95,18 @@ nonisolated final class ScreenshotMonitor: @unchecked Sendable {
             current.insert(url)
             guard !known.contains(url) || pending[url] != nil else { continue }
             guard ["png", "jpg", "jpeg", "heic", "tiff"].contains(url.pathExtension.lowercased()) else { continue }
-            let values = try? url.resourceValues(forKeys: [.creationDateKey, .isRegularFileKey, .fileSizeKey])
+            if let due = nextAttempt[url], due > Date() { continue }
+            var freshURL = url
+            freshURL.removeAllCachedResourceValues()
+            let values = try? freshURL.resourceValues(forKeys: [.creationDateKey, .isRegularFileKey, .fileSizeKey])
             // Subscription precedes baseline. Creation time excludes old files and startup races.
             guard values?.isRegularFile == true, let created = values?.creationDate,
-                  created >= startedAt else { continue }
+                  created >= startedAt else {
+                // A vanished/unreadable candidate must not leave a past-due retry spinning.
+                pending.removeValue(forKey: url)
+                nextAttempt.removeValue(forKey: url)
+                continue
+            }
             guard pending.count < 64 || pending[url] != nil else {
                 report([], "Screenshot burst limit reached; some files were not collected.")
                 continue
@@ -96,17 +119,26 @@ nonisolated final class ScreenshotMonitor: @unchecked Sendable {
             if (marker == true || Self.hasScreenshotAttribute(url)), stable {
                 accepted.append(ScreenshotCandidate(url: url, capturedAt: created))
                 pending.removeValue(forKey: url)
+                nextAttempt.removeValue(forKey: url)
             } else {
                 let attempt = (pending[url] ?? 0) + 1
-                if attempt < 4 { pending[url] = attempt }
-                else { pending.removeValue(forKey: url) }
+                if attempt < 4 {
+                    pending[url] = attempt
+                    // Fast readiness recheck, then a bounded window for delayed metadata.
+                    let delays: [TimeInterval] = [0.15, 0.75, 2.0]
+                    nextAttempt[url] = Date().addingTimeInterval(delays[attempt - 1])
+                } else {
+                    pending.removeValue(forKey: url)
+                    nextAttempt.removeValue(forKey: url)
+                }
             }
         }
         known = current
         sizes = sizes.filter { pending[$0.key] != nil }
         pending = pending.filter { current.contains($0.key) }
         if !accepted.isEmpty { report(accepted.sorted { $0.capturedAt < $1.capturedAt }, nil) }
-        if !pending.isEmpty { schedule() }
+        nextAttempt = nextAttempt.filter { pending[$0.key] != nil }
+        if let due = nextAttempt.values.min() { schedule(after: max(0, due.timeIntervalSinceNow)) }
         if baseline { report([], "Watching new screenshots · originals stay in your folder") }
     }
 
@@ -131,9 +163,13 @@ nonisolated final class ScreenshotMonitor: @unchecked Sendable {
         stopped = true
         scheduled?.cancel()
         scheduled = nil
+        scheduledDeadline = nil
+        scheduleToken = UUID()
         source?.cancel()
         source = nil
         pending.removeAll()
+        nextAttempt.removeAll()
+        sizes.removeAll()
         known.removeAll()
     }
 
