@@ -20,7 +20,7 @@ Product name is DropShelf. Xcode project/schemes and internal executable remain 
 | downloads/ | Public ZIP and SHA-256 checksum linked in README |
 | scripts/create-dmg.sh | Experimental packaging; disk-image creation is blocked here |
 
-ContentView.swift is an unused starter excluded from compilation. The brief was intended to be excluded from resources; the existing ZIP still contains brief resources, observed during archive inspection. Recheck target resource membership before the next package. No third-party runtime dependencies exist.
+ContentView.swift is an unused starter excluded from compilation. Earlier ZIPs contained brief resources. Release 1.0.3 excludes Markdown and shelf-wireframe.svg through explicit build overrides; verified archive resources are AppIcon.icns and Assets.car. Keep those exclusions on later packaging. No third-party runtime dependencies exist.
 
 ## Constraints to preserve
 
@@ -45,7 +45,7 @@ Recorded: twelve tests passed (including three text and two Shift-range checks);
 
 ## Download and packaging
 
-downloads/DropShelf-1.0.2-arm64.zip is the actual Release download: arm64, macOS 27.2 minimum, ad hoc signed, not notarized. No verified DMG exists. See verification/dmg-packaging.md. The SVG is a design concept, not a current app screenshot.
+downloads/DropShelf-1.0.3-arm64.zip is the current Release download (version 1.0.3/build 4): arm64, macOS 27.2 minimum, ad hoc signed, not notarized. No verified DMG exists. See verification/dmg-packaging.md. The SVG is a design concept, not a current app screenshot.
 
 For replacement packages: rebuild Release from intended source, verify signature/ZIP integrity, update checksum and README version/requirements, and record source/build provenance. Never leave a stale checksum. Keep generated .build/, dist/, Xcode user state and credentials out of Git. Do not add licensing terms without owner direction.
 
@@ -63,7 +63,7 @@ The current source adds Text → Save clipboard, compact selectable previews, Co
 
 ## Latest owner-supplied download
 
-README now points to downloads/DropShelf-1.0.2-text-preview-arm64.zip, packaged from the owner-supplied SelfDropTests/SelfDrop.app without rebuilding or altering its signed contents. It is arm64, macOS 27.2+, ad hoc signed, not notarized, and contains Debug/preview libraries. Its internal version remains 1.0.2/build 3. Signature and extracted-file equality/ZIP checks passed. Do not describe this artifact as an optimized Release or assert exact source provenance. Original 1.0.2 Release remains available.
+Historical November 25 preview: downloads/DropShelf-1.0.2-text-preview-arm64.zip, packaged from the owner-supplied SelfDropTests/SelfDrop.app without rebuilding or altering its signed contents. It is arm64, macOS 27.2+, ad hoc signed, not notarized, and contains Debug/preview libraries. Its internal version remains 1.0.2/build 3. Signature and extracted-file equality/ZIP checks passed. Do not describe this artifact as an optimized Release or assert exact source provenance. Original 1.0.2 Release remains available.
 
 ## November 28 file paste and movement
 
@@ -92,3 +92,7 @@ Folder and Stop now share a row below the title/selection summary and above File
 ## Section separator and footer actions
 
 The redundant Desktop-grant guidance sentence is removed; the Allow Desktop access folder button still opens the native picker. Remove selected/Retry are at the bottom (Text mode shares this footer for Copy/Save clipboard). A 2-point semantic separator precedes Recent screenshots. Screenshot content moves up into the former action-row gap and status feedback stays above footer buttons, preserving panel dimensions. See verification/header-text-layout.md.
+
+## Current published download — November 28
+
+README now points to downloads/DropShelf-1.0.3-arm64.zip, a fresh optimized Release build of source e421304. Includes the latest UI, Shift selection, deselection, 400 ms move hold, file paste and responsive screenshot monitor. Version/build are 1.0.3/4 via packaging overrides; local project defaults remain 1.0.2/3. The older source-only/ZIP-unchanged notes above are historical and superseded for these features. arm64, macOS 27.2+, ad hoc signed, not notarized. Signature, archive integrity, extracted-file equality and checksum passed. No brief resources or Debug dylibs in this archive. See verification/release-1.0.3.md and its JSON provenance for exact source hashes/overrides and remaining gates. No new physical footprint/Chrome Drive acceptance claim.

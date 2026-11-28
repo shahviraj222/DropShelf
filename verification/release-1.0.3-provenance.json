@@ -1,0 +1,29 @@
+{
+  "sourceCommit": "e42130407071789d08d0b4b56daf4486c0aafcca",
+  "configuration": "Release",
+  "version": "1.0.3",
+  "build": "4",
+  "architecture": "arm64",
+  "minimumMacOS": "27.2",
+  "xcode": "27.2 (27B52)",
+  "zipSHA256": "1a861d7e1aa8777bbb40f9c4d336f742b9df4c3d97d9641957d33579fd7c3b6c",
+  "zipBytes": 1099230,
+  "sourceSHA256": {
+    "SelfDrop/ContentView.swift": "101f253607ca41015536d8a658886bd827621d821c00e17280dcd1dd6537acb0",
+    "SelfDrop/FileDragView.swift": "951870b901823aea0fdac71a86886da144d2b8925dc021e5f5470f86e3c905f7",
+    "SelfDrop/ScreenshotMonitor.swift": "253440a9b11109cdb82acfc739d3d504ef00406a3f86d1b5214eac782029f4bf",
+    "SelfDrop/SelfDropApp.swift": "ed225526a1aebe847c986581e7eb7f59e45a38090a74ac879fdf2007044d15d9",
+    "SelfDrop/ShelfStore.swift": "0bae9f14c7b8bcb800c532a6b4a8d02c06739a63dbced7c5e9fb9ab5b78c1712",
+    "SelfDrop/ShelfWindowController.swift": "fe59e7dd2aaa281aa0f3013494ef6affbe0d97276b6883e4fadc7a4c62a34b3a"
+  },
+  "localProjectSHA256": "9da09e59c7f0d7e423ddf45ad3266fbf49479e08a8af440e1c94ebe49d234b1f",
+  "buildOverrides": {
+    "ARCHS": "arm64",
+    "CODE_SIGN_STYLE": "Manual",
+    "CODE_SIGN_IDENTITY": "-",
+    "DEVELOPMENT_TEAM": "",
+    "MARKETING_VERSION": "1.0.3",
+    "CURRENT_PROJECT_VERSION": "4",
+    "EXCLUDED_SOURCE_FILE_NAMES": "ContentView.swift *.md shelf-wireframe.svg"
+  }
+}
