@@ -212,15 +212,15 @@ final class FileDragView: NSView, NSDraggingSource {
             if showingText {
                 addSubview(saveTextButton)
                 addSubview(copyTextButton)
-                copyTextButton.frame = NSRect(x: 146, y: 272, width: 55, height: 24)
+                copyTextButton.frame = NSRect(x: 146, y: preferredHeight - 38, width: 55, height: 24)
                 copyTextButton.isEnabled = store.selectedText != nil
-                saveTextButton.frame = NSRect(x: 205, y: 272, width: 101, height: 24)
+                saveTextButton.frame = NSRect(x: 205, y: preferredHeight - 38, width: 101, height: 24)
             }
             headerButton.frame = NSRect(x: 8, y: 6, width: 224, height: 34)
             clearButton.frame = NSRect(x: 236, y: 10, width: 68, height: 24)
-            removeButton.frame = NSRect(x: 14, y: 272, width: 128, height: 24)
+            removeButton.frame = NSRect(x: 14, y: preferredHeight - 38, width: 128, height: 24)
             removeButton.isEnabled = showingText ? store.selectedText != nil : !store.selection.isEmpty
-            retryButton.frame = NSRect(x: 146, y: 272, width: 55, height: 24)
+            retryButton.frame = NSRect(x: 146, y: preferredHeight - 38, width: 55, height: 24)
             folderButton.frame = NSRect(x: 12, y: 62, width: 238, height: 26)
             stopButton.frame = NSRect(x: 254, y: 62, width: 52, height: 26)
             stopButton.isEnabled = monitoring
@@ -253,7 +253,7 @@ final class FileDragView: NSView, NSDraggingSource {
             }
             for (index, item) in store.screenshots.enumerated() {
                 let tile = ShelfTile(item: item, shelf: self,
-                    frame: NSRect(x: 14 + (index % 3) * 98, y: 329 + (index / 3) * 67,
+                    frame: NSRect(x: 14 + (index % 3) * 98, y: 306 + (index / 3) * 67,
                                   width: 90, height: 61))
                 addSubview(tile)
                 tiles.append(tile)
@@ -310,16 +310,19 @@ final class FileDragView: NSView, NSDraggingSource {
             text(showingText ? "Save copied text here" : "Drop files here",
                  x: showingText ? 85 : 105, y: 170, size: 12, color: .secondaryLabelColor)
         }
-        text("Recent screenshots", x: 14, y: 305, size: 12, bold: true)
-        text("\(store.screenshots.count)/10", x: 267, y: 305, size: 11, color: .secondaryLabelColor)
+        NSColor.separatorColor.setFill()
+        NSBezierPath(roundedRect: NSRect(x: 14, y: 268, width: 292, height: 2),
+                     xRadius: 1, yRadius: 1).fill()
+        text("Recent screenshots", x: 14, y: 282, size: 12, bold: true)
+        text("\(store.screenshots.count)/10", x: 267, y: 282, size: 11, color: .secondaryLabelColor)
         if store.screenshots.isEmpty && !monitoring {
-            text("Automatic collection is off", x: 14, y: 332, size: 11, color: .secondaryLabelColor)
+            text("Automatic collection is off", x: 14, y: 309, size: 11, color: .secondaryLabelColor)
         }
         let paragraph = NSMutableParagraphStyle()
         paragraph.lineBreakMode = .byTruncatingTail
         let visibleScreenshotStatus = screenshotStatus.hasPrefix("Watching new screenshots") ? "" : screenshotStatus
         ((showingText ? textStatus : visibleScreenshotStatus) as NSString).draw(
-            in: NSRect(x: 14, y: preferredHeight - 32, width: 292, height: 16),
+            in: NSRect(x: 14, y: preferredHeight - 62, width: 292, height: 16),
             withAttributes: [.font: NSFont.systemFont(ofSize: 10),
                 .foregroundColor: NSColor.secondaryLabelColor, .paragraphStyle: paragraph])
         toolTip = message + (visibleScreenshotStatus.isEmpty ? "" : "\n" + visibleScreenshotStatus)
@@ -369,7 +372,7 @@ final class FileDragView: NSView, NSDraggingSource {
                         if status.hasPrefix("Cannot"),
                            url.standardizedFileURL == Self.defaultScreenshotFolder?.standardizedFileURL {
                             self.folderButton.title = "Allow Desktop access…"
-                            self.screenshotStatus = "Select Desktop to grant access, or choose another folder"
+                            self.screenshotStatus = ""
                         }
                         self.monitor?.stop()
                         self.monitor = nil

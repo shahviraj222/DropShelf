@@ -88,3 +88,7 @@ Selection count and screenshot expiry now appear directly below the app title. F
 ## Header screenshot controls
 
 Folder and Stop now share a row below the title/selection summary and above Files/Text. Tile sections/actions move down 36 points; footer feedback moves into the freed bottom row. Preferred panel dimensions and button actions remain unchanged. See verification/header-text-layout.md.
+
+## Section separator and footer actions
+
+The redundant Desktop-grant guidance sentence is removed; the Allow Desktop access folder button still opens the native picker. Remove selected/Retry are at the bottom (Text mode shares this footer for Copy/Save clipboard). A 2-point semantic separator precedes Recent screenshots. Screenshot content moves up into the former action-row gap and status feedback stays above footer buttons, preserving panel dimensions. See verification/header-text-layout.md.
