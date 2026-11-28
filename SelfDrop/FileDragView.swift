@@ -207,20 +207,20 @@ final class FileDragView: NSView, NSDraggingSource {
                 addSubview(button)
             }
             addSubview(sectionControl)
-            sectionControl.frame = NSRect(x: 14, y: 44, width: 192, height: 24)
+            sectionControl.frame = NSRect(x: 14, y: 62, width: 192, height: 24)
             retryButton.isHidden = showingText
             if showingText {
                 addSubview(saveTextButton)
                 addSubview(copyTextButton)
-                copyTextButton.frame = NSRect(x: 146, y: 218, width: 55, height: 24)
+                copyTextButton.frame = NSRect(x: 146, y: 236, width: 55, height: 24)
                 copyTextButton.isEnabled = store.selectedText != nil
-                saveTextButton.frame = NSRect(x: 205, y: 218, width: 101, height: 24)
+                saveTextButton.frame = NSRect(x: 205, y: 236, width: 101, height: 24)
             }
             headerButton.frame = NSRect(x: 8, y: 6, width: 224, height: 34)
             clearButton.frame = NSRect(x: 236, y: 10, width: 68, height: 24)
-            removeButton.frame = NSRect(x: 14, y: 218, width: 128, height: 24)
+            removeButton.frame = NSRect(x: 14, y: 236, width: 128, height: 24)
             removeButton.isEnabled = showingText ? store.selectedText != nil : !store.selection.isEmpty
-            retryButton.frame = NSRect(x: 146, y: 218, width: 55, height: 24)
+            retryButton.frame = NSRect(x: 146, y: 236, width: 55, height: 24)
             folderButton.frame = NSRect(x: 12, y: preferredHeight - 40, width: 238, height: 26)
             stopButton.frame = NSRect(x: 254, y: preferredHeight - 40, width: 52, height: 26)
             stopButton.isEnabled = monitoring
@@ -229,7 +229,7 @@ final class FileDragView: NSView, NSDraggingSource {
                 for (index, clip) in store.textClips.dropFirst(textOffset).prefix(4).enumerated() {
                     let tile = NSButton(title: clip.preview, target: self, action: #selector(selectText(_:)))
                     tile.identifier = NSUserInterfaceItemIdentifier(clip.id.uuidString)
-                    tile.frame = NSRect(x: 14 + (index % 2) * 147, y: 76 + (index / 2) * 66,
+                    tile.frame = NSRect(x: 14 + (index % 2) * 147, y: 94 + (index / 2) * 66,
                                         width: 139, height: 60)
                     tile.setButtonType(.pushOnPushOff)
                     tile.bezelStyle = .regularSquare
@@ -245,7 +245,7 @@ final class FileDragView: NSView, NSDraggingSource {
             } else {
                 for (index, item) in store.manualItems.dropFirst(offset).prefix(4).enumerated() {
                     let tile = ShelfTile(item: item, shelf: self,
-                        frame: NSRect(x: 14 + (index % 2) * 147, y: 76 + (index / 2) * 66,
+                        frame: NSRect(x: 14 + (index % 2) * 147, y: 94 + (index / 2) * 66,
                                       width: 139, height: 60))
                     addSubview(tile)
                     tiles.append(tile)
@@ -253,7 +253,7 @@ final class FileDragView: NSView, NSDraggingSource {
             }
             for (index, item) in store.screenshots.enumerated() {
                 let tile = ShelfTile(item: item, shelf: self,
-                    frame: NSRect(x: 14 + (index % 3) * 98, y: 275 + (index / 3) * 67,
+                    frame: NSRect(x: 14 + (index % 3) * 98, y: 293 + (index / 3) * 67,
                                   width: 90, height: 61))
                 addSubview(tile)
                 tiles.append(tile)
@@ -301,28 +301,28 @@ final class FileDragView: NSView, NSDraggingSource {
             in: NSRect(x: 12, y: 9, width: 28, height: 28), from: .zero,
             operation: .sourceOver, fraction: 1, respectFlipped: true, hints: nil)
         text("DropShelf", x: 45, y: 13, size: 17, bold: true)
+        let selectionCount = showingText ? (store.selectedText == nil ? 0 : 1) : store.selection.count
+        text("\(selectionCount) selected · screenshots expire after 1 hour",
+             x: 14, y: 42, size: 10, color: .secondaryLabelColor)
         text(showingText ? "\(store.textClips.count)/50" : "\(store.manualItems.count)",
-             x: 270, y: 48, size: 11, color: .secondaryLabelColor)
+             x: 270, y: 66, size: 11, color: .secondaryLabelColor)
         if showingText ? store.textClips.isEmpty : store.manualItems.isEmpty {
             text(showingText ? "Save copied text here" : "Drop files here",
-                 x: showingText ? 85 : 105, y: 116, size: 12, color: .secondaryLabelColor)
+                 x: showingText ? 85 : 105, y: 134, size: 12, color: .secondaryLabelColor)
         }
-        text("Recent screenshots", x: 14, y: 251, size: 12, bold: true)
-        text("\(store.screenshots.count)/10", x: 267, y: 251, size: 11, color: .secondaryLabelColor)
-        if store.screenshots.isEmpty {
-            text(monitoring ? "Waiting for a new saved screenshot" : "Automatic collection is off",
-                 x: 14, y: 278, size: 11, color: .secondaryLabelColor)
+        text("Recent screenshots", x: 14, y: 269, size: 12, bold: true)
+        text("\(store.screenshots.count)/10", x: 267, y: 269, size: 11, color: .secondaryLabelColor)
+        if store.screenshots.isEmpty && !monitoring {
+            text("Automatic collection is off", x: 14, y: 296, size: 11, color: .secondaryLabelColor)
         }
         let paragraph = NSMutableParagraphStyle()
         paragraph.lineBreakMode = .byTruncatingTail
-        ((showingText ? textStatus : screenshotStatus) as NSString).draw(
-            in: NSRect(x: 14, y: preferredHeight - 88, width: 292, height: 16),
+        let visibleScreenshotStatus = screenshotStatus.hasPrefix("Watching new screenshots") ? "" : screenshotStatus
+        ((showingText ? textStatus : visibleScreenshotStatus) as NSString).draw(
+            in: NSRect(x: 14, y: preferredHeight - 68, width: 292, height: 16),
             withAttributes: [.font: NSFont.systemFont(ofSize: 10),
                 .foregroundColor: NSColor.secondaryLabelColor, .paragraphStyle: paragraph])
-        let selectionCount = showingText ? (store.selectedText == nil ? 0 : 1) : store.selection.count
-        text("\(selectionCount) selected · screenshots expire after 1 hour",
-             x: 14, y: preferredHeight - 68, size: 10, color: .secondaryLabelColor)
-        toolTip = message + "\n" + screenshotStatus
+        toolTip = message + (visibleScreenshotStatus.isEmpty ? "" : "\n" + visibleScreenshotStatus)
     }
 
     private func text(_ value: String, x: CGFloat, y: CGFloat, size: CGFloat,

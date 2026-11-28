@@ -80,3 +80,7 @@ ScreenshotMonitor schedules the earliest event deadline at 50 ms without resetti
 ## Empty-space deselection
 
 Expanded FileDragView background clicks clear file/text selection, Shift anchor and long-press multi-select mode while keeping all entries. Native tile/control hits remain separate; active drag snapshots are guarded. The background accepts first mouse in an inactive panel. ShelfStore.deselectAll is the reset entry point. Xcode build and attached-window hit-routing snippet passed; public ZIP unchanged. See verification/empty-space-deselection.md.
+
+## Header text layout
+
+Selection count and screenshot expiry now appear directly below the app title. Files/Text controls and tile sections shift down 18 points while preferred panel dimensions stay unchanged. The normal Watching new screenshots status and waiting-for-saved-screenshot placeholder are hidden; permission/error/stopped feedback remains. See verification/header-text-layout.md.
