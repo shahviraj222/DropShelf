@@ -471,9 +471,9 @@ final class FileDragView: NSView, NSDraggingSource {
         store.selectedTextID = nil
         pendingDragEvent = nil
         window?.makeFirstResponder(self)
-        if event.modifierFlags.contains(.command) || multiSelect {
-            if !store.selection.insert(item.id).inserted { store.selection.remove(item.id) }
-        } else if !store.selection.contains(item.id) { store.selection = [item.id] }
+        store.selectFile(item.id, extendingRange: event.modifierFlags.contains(.shift),
+                         toggling: event.modifierFlags.contains(.command) ||
+                            (multiSelect && !event.modifierFlags.contains(.shift)))
         pressedSelection = store.selection
         downPoint = convert(event.locationInWindow, from: nil)
         longPressTask?.cancel()

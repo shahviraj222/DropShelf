@@ -7,6 +7,44 @@ struct SelfDropTests {
         ReferenceResult(url: item.url, bookmark: nil, identity: identity, available: available)
     }
 
+    @Test func shiftClickSelectsAnchoredRangeInBothDirections() {
+        let store = ShelfStore()
+        defer { store.shutdown() }
+        store.register((0..<6).map { URL(fileURLWithPath: "/tmp/range-\($0)") })
+        let ids = store.manualItems.map(\.id)
+        store.selectFile(ids[0])
+        store.selectFile(ids[3], extendingRange: true)
+        #expect(store.selection == Set(ids[0...3]))
+        store.selectFile(ids[1], extendingRange: true)
+        #expect(store.selection == Set(ids[0...1]))
+        store.selectFile(ids[5])
+        store.selectFile(ids[2], extendingRange: true)
+        #expect(store.selection == Set(ids[2...5]))
+        // Dragging an already selected item preserves the whole chosen group.
+        store.selectFile(ids[3])
+        #expect(store.selection == Set(ids[2...5]))
+    }
+
+    @Test func shiftRangeUsesVisualOrderAndHandlesRemovedAnchor() {
+        let store = ShelfStore(schedulesExpiry: false)
+        defer { store.shutdown() }
+        store.register((0..<3).map { URL(fileURLWithPath: "/tmp/manual-range-\($0)") })
+        let manual = store.manualItems.map(\.id)
+        let date = Date()
+        store.addScreenshot(URL(fileURLWithPath: "/tmp/older-range.png"), capturedAt: date)
+        store.addScreenshot(URL(fileURLWithPath: "/tmp/newer-range.png"), capturedAt: date.addingTimeInterval(1))
+        let screenshots = store.screenshots.map(\.id)
+        store.selectFile(manual[0])
+        store.selectFile(manual[2], toggling: true)
+        store.selectFile(screenshots[0], extendingRange: true, toggling: true)
+        #expect(store.selection == Set([manual[0], manual[2], screenshots[0]]))
+        store.remove([manual[2]])
+        store.selectFile(screenshots[1], extendingRange: true)
+        #expect(store.selection == Set([screenshots[1]]))
+        store.clear()
+        #expect(store.selection.isEmpty)
+    }
+
     @Test func screenshotFIFOExpiryPromotionAndClear() throws {
         var now = Date(timeIntervalSince1970: 100_000)
         let store = ShelfStore(now: { now }, schedulesExpiry: false)

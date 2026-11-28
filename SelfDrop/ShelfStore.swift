@@ -114,12 +114,32 @@ final class ShelfStore {
         items.removeAll()
         queue.removeAll()
         selection.removeAll()
+        selectionAnchor = nil
         textClips.removeAll()
         selectedTextID = nil
         scheduleExpiry()
         changed?()
     }
+    private var selectionAnchor: UUID?
     var selection: Set<UUID> = []
+
+    /// The Files section's visible order, including items reached by scrolling.
+    func selectFile(_ id: UUID, extendingRange: Bool = false, toggling: Bool = false) {
+        let ordered = (manualItems + screenshots).map(\.id)
+        guard let target = ordered.firstIndex(of: id) else { return }
+        if extendingRange, let anchor = selectionAnchor,
+           let start = ordered.firstIndex(of: anchor) {
+            let range = Set(ordered[min(start, target)...max(start, target)])
+            selection = toggling ? selection.union(range) : range
+        } else {
+            if toggling {
+                if !selection.insert(id).inserted { selection.remove(id) }
+            } else if !selection.contains(id) {
+                selection = [id]
+            }
+            selectionAnchor = id
+        }
+    }
     var changed: (() -> Void)?
     private var queue: [UUID] = []
     private var worker: Task<Void, Never>?
@@ -252,6 +272,7 @@ final class ShelfStore {
         items.removeAll { ids.contains($0.id) }
         queue.removeAll { ids.contains($0) }
         selection.subtract(ids)
+        if let selectionAnchor, ids.contains(selectionAnchor) { self.selectionAnchor = nil }
         scheduleExpiry()
         changed?()
     }
@@ -272,6 +293,7 @@ final class ShelfStore {
         queue.removeAll()
         items.removeAll()
         selection.removeAll()
+        selectionAnchor = nil
         changed = nil
     }
 }
