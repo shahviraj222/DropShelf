@@ -64,3 +64,9 @@ The current source adds Text → Save clipboard, compact selectable previews, Co
 ## Latest owner-supplied download
 
 README now points to downloads/DropShelf-1.0.2-text-preview-arm64.zip, packaged from the owner-supplied SelfDropTests/SelfDrop.app without rebuilding or altering its signed contents. It is arm64, macOS 27.2+, ad hoc signed, not notarized, and contains Debug/preview libraries. Its internal version remains 1.0.2/build 3. Signature and extracted-file equality/ZIP checks passed. Do not describe this artifact as an optimized Release or assert exact source provenance. Original 1.0.2 Release remains available.
+
+## November 28 file paste and movement
+
+Finder clipboard file URLs now take priority over text on focused Command-V. Outgoing drags still use one native NSURL writer per snapshot entry, copy-only; video content is never loaded into memory. Real multi-video Google Drive/Chrome upload remains unverified; do not label the browser issue resolved from payload checks alone.
+
+ShelfMoveHandle handles short-click vs 700 ms hold on the collapsed tab/header. It passes the genuine original mouse-down to NSWindow.performDrag, clears gesture state before handoff (mouse-up may be consumed), and cancels pending hold on early release/movement or shutdown. ShelfWindowController uses a session-only center, delegate move events and visible-frame fitting; no position persistence or global mouse monitoring. Source-only; current public ZIP predates this change. See verification/multi-file-paste-and-movement.md.

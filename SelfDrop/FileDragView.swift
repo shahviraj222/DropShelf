@@ -111,7 +111,7 @@ final class FileDragView: NSView, NSDraggingSource {
     private let folderButton = NSButton(title: "Choose screenshot folder…", target: nil, action: nil)
     private let removeButton = NSButton(title: "Remove selected", target: nil, action: nil)
     private let clearButton = NSButton(title: "Clear all", target: nil, action: nil)
-    private let headerButton = NSButton(title: "", target: nil, action: nil)
+    private let headerButton = ShelfMoveHandle(title: "", target: nil, action: nil)
     private let stopButton = NSButton(title: "Stop", target: nil, action: nil)
     private let retryButton = NSButton(title: "Retry", target: nil, action: nil)
     private var wakeObserver: NSObjectProtocol?
@@ -141,7 +141,7 @@ final class FileDragView: NSView, NSDraggingSource {
         headerButton.isTransparent = true
         headerButton.identifier = NSUserInterfaceItemIdentifier("collapseShelfHeader")
         headerButton.setAccessibilityLabel("Collapse DropShelf")
-        headerButton.toolTip = "Collapse shelf"
+        headerButton.toolTip = "Click to collapse · hold 0.7 seconds to move"
         clearButton.toolTip = "Remove all shelf references. Original files stay untouched."
         removeButton.toolTip = "Remove selected references, not the original files."
         store.changed = { [weak self] in
@@ -182,6 +182,11 @@ final class FileDragView: NSView, NSDraggingSource {
         }
     }
     required init?(coder: NSCoder) { nil }
+
+    override func resizeSubviews(withOldSize oldSize: NSSize) {
+        super.resizeSubviews(withOldSize: oldSize)
+        if !expanded { headerButton.frame = bounds }
+    }
 
     static func fileURLs(from pasteboard: NSPasteboard) -> [URL] {
         (pasteboard.readObjects(forClasses: [NSURL.self],
@@ -275,6 +280,9 @@ final class FileDragView: NSView, NSDraggingSource {
                 }
             }
         } else {
+            headerButton.frame = bounds
+            headerButton.toolTip = "Click to open · hold 0.7 seconds to move"
+            addSubview(headerButton)
             cache.removeAll()
             cacheOrder.removeAll()
         }
@@ -397,9 +405,19 @@ final class FileDragView: NSView, NSDraggingSource {
         reload()
     }
 
-    @objc private func saveClipboard() {
-        guard let value = NSPasteboard.general.string(forType: .string)
-            ?? NSPasteboard.general.string(forType: .URL) else {
+    @objc private func saveClipboard() { pasteClipboard(.general) }
+
+    func pasteClipboard(_ pasteboard: NSPasteboard) {
+        // Finder may also publish a textual filename; prefer the native file objects.
+        let urls = Self.fileURLs(from: pasteboard)
+        if !urls.isEmpty {
+            sectionControl.selectedSegment = 0
+            message = store.register(urls) ? "Files added" : "Cannot add files. Manual limit is 500."
+            reload()
+            return
+        }
+        guard let value = pasteboard.string(forType: .string)
+            ?? pasteboard.string(forType: .URL) else {
             textStatus = "Clipboard has no plain text or URL"
             sectionControl.selectedSegment = 1
             reload()
@@ -555,6 +573,9 @@ final class FileDragView: NSView, NSDraggingSource {
         beginPreparedDrag(snapshot, event: event)
     }
 
+    // Keep the URL writer native: AppKit supplies file-transfer representations/access.
+    static func fileWriter(for url: URL) -> NSURL { url as NSURL }
+
     private func beginPreparedDrag(_ snapshot: [ShelfItem], event: NSEvent) {
         let point = convert(event.locationInWindow, from: nil)
         pendingDragEvent = nil
@@ -562,7 +583,7 @@ final class FileDragView: NSView, NSDraggingSource {
         longPressTask?.cancel()
         dragSnapshot = snapshot
         let items = snapshot.map { reference in
-            let item = NSDraggingItem(pasteboardWriter: reference.url as NSURL)
+            let item = NSDraggingItem(pasteboardWriter: Self.fileWriter(for: reference.url))
             let image = cache[reference.url] ?? NSImage(systemSymbolName: "doc", accessibilityDescription: nil)
                 ?? NSImage(size: NSSize(width: 24, height: 24))
             item.setDraggingFrame(NSRect(origin: point, size: NSSize(width: 40, height: 32)), contents: image)
@@ -580,6 +601,7 @@ final class FileDragView: NSView, NSDraggingSource {
     }
 
     func shutdown() {
+        headerButton.cancelPress()
         stopMonitoring()
         feedbackTask?.cancel()
         previewTask?.cancel()

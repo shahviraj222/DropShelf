@@ -26,7 +26,7 @@ This is an early development build with ad hoc signing, **without Developer ID s
 
 *The supplied SVG illustrates the intended interactions and feedback states. It is a concept reference, not a screenshot of the current build.*
 
-1. **Stage files:** drag files or folders from Finder directly onto the collapsed blue tab, as shown on the left of the image.
+1. **Stage files:** drag files or folders from Finder directly onto the collapsed blue tab, as shown on the left of the image. In the current source build, Finder **Copy → ⌘V** with the shelf focused also stages native file references (files take priority over clipboard text).
 2. **Open the shelf:** click the tab. The panel opens inward from the right edge, as shown on the right.
 3. **Select and drag:** press a tile and move while holding the mouse button to drag in one gesture; no release and second click is required. A click without movement selects the tile. Cmd-click selects multiple tiles; long press enables multi-selection. Use the actual attachment area or folder, such as a ChatGPT composer or VS Code Explorer folder. Acceptance depends on the receiving app and drop zone.
 4. **Collect screenshots:** Desktop is the default folder on startup. If macOS blocks access, click **Allow Desktop access…** and confirm Desktop in the folder picker. Use the folder button to choose another save location. Save a new screenshot after enabling collection. The newest 10 references appear separately and each expires after one hour. **Stop** disables collection. On restart, the app returns to Desktop; another folder must be selected again for that session.
@@ -34,6 +34,9 @@ This is an early development build with ad hoc signing, **without Developer ID s
 6. **Remove items:** use **Remove selected**, Delete, or **Clear all**. These remove file references or saved text, never original files. Clear all leaves monitoring enabled for future screenshots.
 7. **App menu:** use **About DropShelf** for version details, **How to Use DropShelf** for the built-in guide, or **Show Shelf** (**Shift-Command-S**) to open the panel. Clicking the Dock icon also opens the shelf.
 8. **Close the panel:** click the app icon/title header to return to the tab. Outgoing drags retain staged items.
+9. **Move the shelf (current source build):** hold the collapsed tab or app icon/title header for 0.7 seconds, then drag to the desired position. Short clicks still open/close it. The chosen position lasts for the session, including opening/closing; restarting returns it to the right edge.
+
+The November 28 file-paste and movement changes are source-only; the downloadable text preview above predates them. Multi-video upload into Google Drive in Chrome is under investigation: typed multi-file payload checks pass, but real Drive acceptance is unverified. See [verification](verification/multi-file-paste-and-movement.md).
 
 Collection watches only the selected folder. It does not capture the screen, import old screenshots, intercept the clipboard, or materialize floating screenshot promises. Missing/delayed screenshot metadata can prevent automatic collection; manually dropping the saved file remains available.
 
